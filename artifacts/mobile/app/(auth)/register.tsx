@@ -1,9 +1,10 @@
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import * as Haptics from "expo-haptics";
 import React, { useState } from "react";
 import {
   Alert,
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -12,7 +13,6 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
@@ -22,8 +22,10 @@ export default function RegisterScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { register } = useAuth();
+  const { phone: prefillPhone } = useLocalSearchParams<{ phone?: string }>();
+
   const [fullname, setFullname] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(prefillPhone ?? "");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -31,14 +33,16 @@ export default function RegisterScreen() {
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
+  const comingFromCheck = !!prefillPhone;
+
   async function handleRegister() {
-    if (!fullname || !phone || !password) {
+    if (!fullname.trim() || !phone.trim() || !password) {
       Alert.alert("Champs requis", "Veuillez remplir tous les champs.");
       return;
     }
     setLoading(true);
     try {
-      const ok = await register(fullname, phone, phone, password);
+      const ok = await register(fullname.trim(), phone.trim(), password);
       if (ok) {
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         router.replace("/(tabs)");
@@ -56,53 +60,64 @@ export default function RegisterScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView
-        contentContainerStyle={[styles.scroll, { paddingTop: topPad + 24, paddingBottom: bottomPad + 32 }]}
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingTop: topPad + 28, paddingBottom: bottomPad + 32 },
+        ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Back + Brand */}
+        {/* Back button */}
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
           <View style={[styles.backCircle, { backgroundColor: colors.card }]}>
             <Feather name="arrow-left" size={18} color={colors.foreground} />
           </View>
         </TouchableOpacity>
 
+        {/* Brand */}
         <View style={[styles.logoBox, { backgroundColor: colors.primary }]}>
           <Feather name="zap" size={22} color="#FFF" />
         </View>
 
         <Text style={[styles.title, { color: colors.foreground }]}>Créer un compte</Text>
         <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-          Votre numéro suffit pour commencer.
+          {comingFromCheck
+            ? `Le numéro ${phone} n'existe pas encore.\nComplétez votre profil pour commencer.`
+            : "Votre numéro suffit pour commencer."}
         </Text>
 
-        {/* Social first — faster path */}
-        <TouchableOpacity
-          style={[styles.socialBtn, { backgroundColor: colors.card }]}
-          onPress={() => Alert.alert("Google", "Inscription Google bientôt disponible.")}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.googleG}>G</Text>
-          <Text style={[styles.socialBtnText, { color: colors.foreground }]}>Continuer avec Google</Text>
-        </TouchableOpacity>
+        {/* Social buttons — only shown when arriving directly (not from phone check) */}
+        {!comingFromCheck && (
+          <>
+            <TouchableOpacity
+              style={[styles.socialBtn, { backgroundColor: colors.card }]}
+              onPress={() => Alert.alert("Google", "Inscription Google bientôt disponible.")}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.googleG}>G</Text>
+              <Text style={[styles.socialBtnText, { color: colors.foreground }]}>
+                Continuer avec Google
+              </Text>
+            </TouchableOpacity>
 
-        {Platform.OS !== "android" && (
-          <TouchableOpacity
-            style={[styles.socialBtn, styles.appleBtn]}
-            onPress={() => Alert.alert("Apple", "Inscription Apple bientôt disponible.")}
-            activeOpacity={0.8}
-          >
-            <Feather name="smartphone" size={18} color="#FFF" />
-            <Text style={styles.appleBtnText}>Continuer avec Apple</Text>
-          </TouchableOpacity>
+            {Platform.OS !== "android" && (
+              <TouchableOpacity
+                style={[styles.socialBtn, styles.appleBtn]}
+                onPress={() => Alert.alert("Apple", "Inscription Apple bientôt disponible.")}
+                activeOpacity={0.8}
+              >
+                <Feather name="smartphone" size={18} color="#FFF" />
+                <Text style={styles.appleBtnText}>Continuer avec Apple</Text>
+              </TouchableOpacity>
+            )}
+
+            <View style={styles.orRow}>
+              <View style={[styles.orLine, { backgroundColor: colors.border }]} />
+              <Text style={[styles.orText, { color: colors.mutedForeground }]}>ou avec votre numéro</Text>
+              <View style={[styles.orLine, { backgroundColor: colors.border }]} />
+            </View>
+          </>
         )}
-
-        {/* Separator */}
-        <View style={styles.orRow}>
-          <View style={[styles.orLine, { backgroundColor: colors.border }]} />
-          <Text style={[styles.orText, { color: colors.mutedForeground }]}>ou avec votre numéro</Text>
-          <View style={[styles.orLine, { backgroundColor: colors.border }]} />
-        </View>
 
         {/* Fields */}
         <View style={styles.fieldGroup}>
@@ -116,13 +131,22 @@ export default function RegisterScreen() {
               value={fullname}
               onChangeText={setFullname}
               autoCapitalize="words"
+              autoFocus={comingFromCheck}
             />
           </View>
         </View>
 
         <View style={styles.fieldGroup}>
           <Text style={[styles.label, { color: colors.mutedForeground }]}>Numéro de téléphone</Text>
-          <View style={[styles.flatInput, { backgroundColor: colors.card }]}>
+          <View
+            style={[
+              styles.flatInput,
+              {
+                backgroundColor: colors.card,
+                opacity: comingFromCheck ? 0.7 : 1,
+              },
+            ]}
+          >
             <Feather name="phone" size={17} color={colors.primary} />
             <TextInput
               style={[styles.inputText, { color: colors.foreground }]}
@@ -131,7 +155,11 @@ export default function RegisterScreen() {
               value={phone}
               onChangeText={setPhone}
               keyboardType="phone-pad"
+              editable={!comingFromCheck}
             />
+            {comingFromCheck && (
+              <Feather name="check-circle" size={16} color={colors.success} />
+            )}
           </View>
         </View>
 
@@ -148,13 +176,20 @@ export default function RegisterScreen() {
               secureTextEntry={!showPass}
             />
             <TouchableOpacity onPress={() => setShowPass(!showPass)}>
-              <Feather name={showPass ? "eye-off" : "eye"} size={17} color={colors.mutedForeground} />
+              <Feather
+                name={showPass ? "eye-off" : "eye"}
+                size={17}
+                color={colors.mutedForeground}
+              />
             </TouchableOpacity>
           </View>
         </View>
 
         <TouchableOpacity
-          style={[styles.primaryBtn, { backgroundColor: colors.primary, opacity: loading ? 0.75 : 1, marginTop: 8 }]}
+          style={[
+            styles.primaryBtn,
+            { backgroundColor: colors.primary, opacity: loading ? 0.75 : 1, marginTop: 8 },
+          ]}
           onPress={handleRegister}
           disabled={loading}
           activeOpacity={0.85}
@@ -167,7 +202,9 @@ export default function RegisterScreen() {
         </TouchableOpacity>
 
         <View style={styles.bottomRow}>
-          <Text style={[styles.bottomLabel, { color: colors.mutedForeground }]}>Déjà un compte ? </Text>
+          <Text style={[styles.bottomLabel, { color: colors.mutedForeground }]}>
+            Déjà un compte ?{" "}
+          </Text>
           <TouchableOpacity onPress={() => router.back()}>
             <Text style={[styles.bottomLink, { color: colors.primary }]}>Se connecter</Text>
           </TouchableOpacity>
@@ -227,7 +264,7 @@ const styles = StyleSheet.create({
   socialBtnText: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
   appleBtn: { backgroundColor: "#000" },
   appleBtnText: { color: "#FFF", fontSize: 15, fontFamily: "Inter_600SemiBold" },
-  orRow: { flexDirection: "row", alignItems: "center", gap: 10, marginVertical: 24 },
+  orRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 24 },
   orLine: { flex: 1, height: 1 },
   orText: { fontSize: 12, fontFamily: "Inter_500Medium" },
   fieldGroup: { marginBottom: 16 },

@@ -7,8 +7,9 @@ const USER_KEY = "@chapcredit:user";
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
+  checkPhone: (phone: string) => Promise<boolean>;
   login: (phone: string, password: string) => Promise<boolean>;
-  register: (fullname: string, phone: string, email: string, password: string) => Promise<boolean>;
+  register: (fullname: string, phone: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   updateUser: (updates: Partial<User>) => Promise<void>;
 }
@@ -19,9 +20,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    loadUser();
-  }, []);
+  useEffect(() => { loadUser(); }, []);
 
   async function loadUser() {
     try {
@@ -30,6 +29,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function checkPhone(phone: string): Promise<boolean> {
+    try {
+      const raw = await AsyncStorage.getItem(USER_KEY);
+      if (!raw) return false;
+      const stored: User = JSON.parse(raw);
+      return stored.phone === phone;
+    } catch {
+      return false;
     }
   }
 
@@ -48,13 +58,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function register(fullname: string, phone: string, email: string, _password: string): Promise<boolean> {
+  async function register(fullname: string, phone: string, _password: string): Promise<boolean> {
     try {
       const newUser: User = {
         id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
         fullname,
         phone,
-        email,
+        email: "",
         walletBalance: 5000,
         createdAt: new Date().toISOString(),
       };
@@ -79,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, isLoading, checkPhone, login, register, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
