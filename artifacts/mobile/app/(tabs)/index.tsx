@@ -1,7 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
-import React from "react";
+import React, { useState } from "react";
 import {
   Alert,
   Platform,
@@ -12,17 +12,22 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import WalletCard from "@/components/WalletCard";
-import TransactionItem from "@/components/TransactionItem";
 import { useAuth } from "@/context/AuthContext";
 import { useData } from "@/context/DataContext";
+import { PACKAGES, OPERATOR_COLORS } from "@/constants/packages";
 import { useColors } from "@/hooks/useColors";
 
-const QUICK_ACTIONS = [
-  { id: "internet", label: "Forfait internet", icon: "wifi" as const, primary: true },
-  { id: "credit", label: "Crédit téléphonique", icon: "phone" as const, primary: false },
-  { id: "bill", label: "Payer facture", icon: "file-text" as const, primary: false },
-];
+type Operator = "Orange" | "MTN" | "Moov";
+
+const OPERATORS: Operator[] = ["Orange", "MTN", "Moov"];
+
+function formatPrice(n: number) {
+  return n.toLocaleString("fr-CI");
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("fr-CI", { day: "2-digit", month: "short" });
+}
 
 export default function HomeScreen() {
   const colors = useColors();
@@ -30,118 +35,209 @@ export default function HomeScreen() {
   const { user } = useAuth();
   const { transactions } = useData();
 
+  const [operator, setOperator] = useState<Operator>("Orange");
+
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 + 84 : insets.bottom + 84;
 
-  const recent = transactions.slice(0, 5);
+  if (!user) return null;
 
-  function handleQuickAction(id: string) {
-    if (id === "internet") {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      router.push("/(tabs)/buy");
-    } else {
-      Alert.alert("Bientôt disponible", "Cette fonctionnalité sera disponible prochainement.");
-    }
+  const firstName = user.fullname.split(" ")[0];
+  const initials = user.fullname
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  const opColor = OPERATOR_COLORS[operator];
+  const packages = PACKAGES.filter((p) => p.operator === operator);
+  const recent = transactions.slice(0, 3);
+
+  function handleBuy(pkgId: string) {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push({ pathname: "/(tabs)/buy", params: { packageId: pkgId, operator } });
   }
 
-  if (!user) return null;
+  const statusColors = {
+    success: colors.success,
+    pending: colors.secondary,
+    failed: colors.destructive,
+  };
 
   return (
     <ScrollView
       style={[styles.root, { backgroundColor: colors.background }]}
-      contentContainerStyle={{ paddingTop: topPad + 20, paddingBottom: bottomPad }}
+      contentContainerStyle={{ paddingTop: topPad + 24, paddingBottom: bottomPad }}
       showsVerticalScrollIndicator={false}
     >
-      <View style={styles.topBar}>
+      {/* ── Header ── */}
+      <View style={[styles.header, { paddingHorizontal: 24 }]}>
         <View>
           <Text style={[styles.greeting, { color: colors.mutedForeground }]}>Bonjour,</Text>
-          <Text style={[styles.username, { color: colors.foreground }]}>
-            {user.fullname.split(" ")[0]}
-          </Text>
+          <Text style={[styles.username, { color: colors.foreground }]}>{firstName}</Text>
         </View>
         <TouchableOpacity
-          style={[styles.notifBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+          style={[styles.avatar, { backgroundColor: colors.primary }]}
+          onPress={() => router.push("/(tabs)/profile")}
           activeOpacity={0.8}
         >
-          <Feather name="bell" size={18} color={colors.foreground} />
-          <View style={[styles.notifDot, { backgroundColor: colors.secondary }]} />
+          <Text style={styles.avatarText}>{initials}</Text>
         </TouchableOpacity>
       </View>
 
-      <WalletCard
-        balance={user.walletBalance}
-        phone={user.phone}
-        name={user.fullname}
-        onTopUp={() => Alert.alert("Recharge", "Fonctionnalité bientôt disponible.")}
-      />
+      {/* ── Balance ── */}
+      <View style={[styles.balanceBlock, { paddingHorizontal: 24 }]}>
+        <Text style={[styles.balanceLabel, { color: colors.mutedForeground }]}>Solde disponible</Text>
+        <View style={styles.balanceRow}>
+          <Text style={[styles.balanceAmount, { color: colors.foreground }]}>
+            {formatPrice(user.walletBalance)}
+          </Text>
+          <Text style={[styles.balanceCurrency, { color: colors.mutedForeground }]}>FCFA</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.rechargeBtn}
+          onPress={() => Alert.alert("Recharge", "Fonctionnalité bientôt disponible.")}
+          activeOpacity={0.7}
+        >
+          <Feather name="plus" size={13} color={colors.primary} />
+          <Text style={[styles.rechargeBtnText, { color: colors.primary }]}>Recharger le solde</Text>
+        </TouchableOpacity>
+      </View>
 
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Actions rapides</Text>
-        <View style={styles.actionsGrid}>
-          {QUICK_ACTIONS.map((action) => (
-            <TouchableOpacity
-              key={action.id}
-              style={[
-                styles.actionCard,
-                {
-                  backgroundColor: action.primary ? colors.primary : colors.card,
-                  borderColor: action.primary ? colors.primary : colors.border,
-                },
-              ]}
-              onPress={() => handleQuickAction(action.id)}
-              activeOpacity={0.8}
-            >
-              <View
+      {/* ── Séparateur ── */}
+      <View style={[styles.sep, { backgroundColor: colors.border, marginHorizontal: 24 }]} />
+
+      {/* ── Opérateurs ── */}
+      <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
+        <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Opérateur</Text>
+        <View style={styles.operatorsRow}>
+          {OPERATORS.map((op) => {
+            const active = op === operator;
+            const color = OPERATOR_COLORS[op];
+            return (
+              <TouchableOpacity
+                key={op}
                 style={[
-                  styles.actionIcon,
+                  styles.opPill,
                   {
-                    backgroundColor: action.primary
-                      ? "rgba(255,255,255,0.2)"
-                      : colors.accent,
+                    backgroundColor: active ? color + "18" : "transparent",
+                    borderBottomWidth: active ? 2 : 0,
+                    borderBottomColor: active ? color : "transparent",
                   },
                 ]}
+                onPress={() => {
+                  setOperator(op);
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }}
+                activeOpacity={0.7}
               >
-                <Feather
-                  name={action.icon}
-                  size={20}
-                  color={action.primary ? "#FFF" : colors.primary}
-                />
-              </View>
-              <Text
-                style={[
-                  styles.actionLabel,
-                  { color: action.primary ? "#FFF" : colors.foreground },
-                ]}
-              >
-                {action.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <View style={[styles.opDot, { backgroundColor: color }]} />
+                <Text
+                  style={[
+                    styles.opLabel,
+                    { color: active ? color : colors.mutedForeground, fontFamily: active ? "Inter_700Bold" : "Inter_400Regular" },
+                  ]}
+                >
+                  {op}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
 
-      <View style={[styles.section, styles.historySection]}>
+      {/* ── Forfaits ── */}
+      <View style={{ paddingHorizontal: 24, marginBottom: 32 }}>
         <View style={styles.sectionRow}>
-          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-            Transactions récentes
-          </Text>
-          <TouchableOpacity onPress={() => router.push("/(tabs)/history")}>
+          <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Forfaits internet</Text>
+          <Text style={[styles.opTag, { color: opColor }]}>{operator}</Text>
+        </View>
+
+        {packages.map((pkg, i) => (
+          <TouchableOpacity
+            key={pkg.id}
+            style={[
+              styles.pkgRow,
+              i < packages.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+            ]}
+            onPress={() => handleBuy(pkg.id)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.pkgLeft}>
+              <Text style={[styles.pkgData, { color: colors.foreground }]}>{pkg.data}</Text>
+              <Text style={[styles.pkgValidity, { color: colors.mutedForeground }]}>{pkg.validity}</Text>
+            </View>
+            <View style={styles.pkgRight}>
+              <Text style={[styles.pkgPrice, { color: colors.foreground }]}>
+                {formatPrice(pkg.price)}{" "}
+                <Text style={[styles.pkgFcfa, { color: colors.mutedForeground }]}>FCFA</Text>
+              </Text>
+              <View style={[styles.buyChip, { backgroundColor: opColor + "18" }]}>
+                <Text style={[styles.buyChipText, { color: opColor }]}>Acheter</Text>
+                <Feather name="arrow-right" size={11} color={opColor} />
+              </View>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* ── Séparateur ── */}
+      <View style={[styles.sep, { backgroundColor: colors.border, marginHorizontal: 24 }]} />
+
+      {/* ── Transactions récentes ── */}
+      <View style={{ paddingHorizontal: 24 }}>
+        <View style={styles.sectionRow}>
+          <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Récentes</Text>
+          <TouchableOpacity onPress={() => router.push("/(tabs)/history")} activeOpacity={0.7}>
             <Text style={[styles.seeAll, { color: colors.primary }]}>Voir tout</Text>
           </TouchableOpacity>
         </View>
 
         {recent.length === 0 ? (
-          <View style={[styles.emptyState, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Feather name="inbox" size={32} color={colors.mutedForeground} />
-            <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
-              Aucune transaction
-            </Text>
+          <View style={styles.emptyRow}>
+            <Feather name="inbox" size={18} color={colors.mutedForeground} />
             <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
-              Votre historique apparaîtra ici
+              Aucune transaction pour l'instant
             </Text>
           </View>
         ) : (
-          recent.map((tx) => <TransactionItem key={tx.id} transaction={tx} />)
+          recent.map((tx, i) => {
+            const opCol = OPERATOR_COLORS[tx.operator] ?? colors.primary;
+            const sc = statusColors[tx.status];
+            return (
+              <View
+                key={tx.id}
+                style={[
+                  styles.txRow,
+                  i < recent.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+                ]}
+              >
+                <View style={[styles.txIcon, { backgroundColor: opCol + "14" }]}>
+                  <Feather name="wifi" size={15} color={opCol} />
+                </View>
+                <View style={styles.txInfo}>
+                  <Text style={[styles.txTitle, { color: colors.foreground }]}>
+                    {tx.operator} {tx.data}
+                  </Text>
+                  <Text style={[styles.txSub, { color: colors.mutedForeground }]}>
+                    {tx.phone} · {formatDate(tx.createdAt)}
+                  </Text>
+                </View>
+                <View style={styles.txRight}>
+                  <Text style={[styles.txAmount, { color: colors.foreground }]}>
+                    -{formatPrice(tx.amount)} FCFA
+                  </Text>
+                  <View style={[styles.txBadge, { backgroundColor: sc + "16" }]}>
+                    <View style={[styles.txDot, { backgroundColor: sc }]} />
+                    <Text style={[styles.txBadgeText, { color: sc }]}>
+                      {tx.status === "success" ? "Réussi" : tx.status === "pending" ? "En cours" : "Échoué"}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            );
+          })
         )}
       </View>
     </ScrollView>
@@ -150,73 +246,96 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  topBar: {
+
+  header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 28,
   },
-  greeting: { fontSize: 13, fontFamily: "Inter_400Regular" },
-  username: { fontSize: 22, fontFamily: "Inter_700Bold", marginTop: 2 },
-  notifBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
+  greeting: { fontSize: 13, fontFamily: "Inter_400Regular", marginBottom: 2 },
+  username: { fontSize: 24, fontFamily: "Inter_700Bold" },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    position: "relative",
   },
-  notifDot: {
-    position: "absolute",
-    top: 9,
-    right: 9,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    borderWidth: 1.5,
-    borderColor: "#FFF",
-  },
-  section: { paddingHorizontal: 20, marginTop: 28 },
-  historySection: { marginTop: 8 },
-  sectionTitle: { fontSize: 17, fontFamily: "Inter_700Bold", marginBottom: 16 },
-  sectionRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
+  avatarText: { color: "#FFF", fontSize: 14, fontFamily: "Inter_700Bold" },
+
+  balanceBlock: { marginBottom: 28 },
+  balanceLabel: { fontSize: 12, fontFamily: "Inter_400Regular", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 },
+  balanceRow: { flexDirection: "row", alignItems: "baseline", gap: 6, marginBottom: 10 },
+  balanceAmount: { fontSize: 38, fontFamily: "Inter_700Bold", letterSpacing: -1 },
+  balanceCurrency: { fontSize: 16, fontFamily: "Inter_500Medium" },
+  rechargeBtn: { flexDirection: "row", alignItems: "center", gap: 5, alignSelf: "flex-start" },
+  rechargeBtnText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+
+  sep: { height: StyleSheet.hairlineWidth, marginBottom: 28 },
+
+  sectionLabel: { fontSize: 11, fontFamily: "Inter_600SemiBold", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 14 },
+  sectionRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 },
   seeAll: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-  actionsGrid: { flexDirection: "row", gap: 12 },
-  actionCard: {
+  opTag: { fontSize: 12, fontFamily: "Inter_700Bold" },
+
+  operatorsRow: { flexDirection: "row", gap: 0 },
+  opPill: {
     flex: 1,
+    flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 18,
-    borderRadius: 16,
-    borderWidth: 1,
-    gap: 10,
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 8,
   },
-  actionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
+  opDot: { width: 8, height: 8, borderRadius: 4 },
+  opLabel: { fontSize: 14 },
+
+  pkgRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 16,
+  },
+  pkgLeft: { gap: 3 },
+  pkgData: { fontSize: 17, fontFamily: "Inter_700Bold" },
+  pkgValidity: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  pkgRight: { alignItems: "flex-end", gap: 6 },
+  pkgPrice: { fontSize: 15, fontFamily: "Inter_700Bold" },
+  pkgFcfa: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  buyChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  buyChipText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+
+  emptyRow: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 20 },
+  emptyText: { fontSize: 14, fontFamily: "Inter_400Regular" },
+
+  txRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    gap: 12,
+  },
+  txIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
   },
-  actionLabel: {
-    fontSize: 11,
-    fontFamily: "Inter_600SemiBold",
-    textAlign: "center",
-  },
-  emptyState: {
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 40,
-    borderRadius: 16,
-    borderWidth: 1,
-    gap: 10,
-  },
-  emptyTitle: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
-  emptyText: { fontSize: 13, fontFamily: "Inter_400Regular", textAlign: "center" },
+  txInfo: { flex: 1, gap: 3 },
+  txTitle: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  txSub: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  txRight: { alignItems: "flex-end", gap: 5 },
+  txAmount: { fontSize: 13, fontFamily: "Inter_700Bold" },
+  txBadge: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 7, paddingVertical: 3, borderRadius: 20 },
+  txDot: { width: 5, height: 5, borderRadius: 3 },
+  txBadgeText: { fontSize: 10, fontFamily: "Inter_600SemiBold" },
 });
