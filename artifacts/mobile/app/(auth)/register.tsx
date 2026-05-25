@@ -62,31 +62,36 @@ export default function RegisterScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.scroll,
-          { paddingTop: topPad + 28, paddingBottom: bottomPad + 32 },
+          { paddingTop: topPad + 40, paddingBottom: bottomPad + 32 },
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Back button */}
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
-          <View style={[styles.backCircle, { backgroundColor: colors.card }]}>
-            <Feather name="arrow-left" size={18} color={colors.foreground} />
+        {/* Brand — same as login */}
+        <View style={styles.brand}>
+          <View style={[styles.logoBox, { backgroundColor: colors.primary }]}>
+            <Feather name="zap" size={26} color="#FFF" />
           </View>
-        </TouchableOpacity>
-
-        {/* Brand */}
-        <View style={[styles.logoBox, { backgroundColor: colors.primary }]}>
-          <Feather name="zap" size={22} color="#FFF" />
+          <Text style={[styles.appName, { color: colors.foreground }]}>CHAP-CREDIT</Text>
+          <Text style={[styles.appTagline, { color: colors.mutedForeground }]}>
+            Internet en quelques secondes
+          </Text>
         </View>
+
+        {/* Back link */}
+        <TouchableOpacity style={styles.backRow} onPress={() => router.back()} activeOpacity={0.7}>
+          <Feather name="arrow-left" size={16} color={colors.primary} />
+          <Text style={[styles.backText, { color: colors.primary }]}>Retour</Text>
+        </TouchableOpacity>
 
         <Text style={[styles.title, { color: colors.foreground }]}>Créer un compte</Text>
         <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
           {comingFromCheck
-            ? `Le numéro ${phone} n'existe pas encore.\nComplétez votre profil pour commencer.`
+            ? `Le numéro ${phone} n'est pas encore inscrit.\nComplétez votre profil pour commencer.`
             : "Votre numéro suffit pour commencer."}
         </Text>
 
-        {/* Social buttons — only shown when arriving directly (not from phone check) */}
+        {/* Social — only if arriving directly, not from phone check */}
         {!comingFromCheck && (
           <>
             <TouchableOpacity
@@ -138,15 +143,7 @@ export default function RegisterScreen() {
 
         <View style={styles.fieldGroup}>
           <Text style={[styles.label, { color: colors.mutedForeground }]}>Numéro de téléphone</Text>
-          <View
-            style={[
-              styles.flatInput,
-              {
-                backgroundColor: colors.card,
-                opacity: comingFromCheck ? 0.7 : 1,
-              },
-            ]}
-          >
+          <View style={[styles.flatInput, { backgroundColor: colors.card, opacity: comingFromCheck ? 0.7 : 1 }]}>
             <Feather name="phone" size={17} color={colors.primary} />
             <TextInput
               style={[styles.inputText, { color: colors.foreground }]}
@@ -176,20 +173,13 @@ export default function RegisterScreen() {
               secureTextEntry={!showPass}
             />
             <TouchableOpacity onPress={() => setShowPass(!showPass)}>
-              <Feather
-                name={showPass ? "eye-off" : "eye"}
-                size={17}
-                color={colors.mutedForeground}
-              />
+              <Feather name={showPass ? "eye-off" : "eye"} size={17} color={colors.mutedForeground} />
             </TouchableOpacity>
           </View>
         </View>
 
         <TouchableOpacity
-          style={[
-            styles.primaryBtn,
-            { backgroundColor: colors.primary, opacity: loading ? 0.75 : 1, marginTop: 8 },
-          ]}
+          style={[styles.primaryBtn, { backgroundColor: colors.primary, opacity: loading ? 0.75 : 1, marginTop: 8 }]}
           onPress={handleRegister}
           disabled={loading}
           activeOpacity={0.85}
@@ -202,9 +192,7 @@ export default function RegisterScreen() {
         </TouchableOpacity>
 
         <View style={styles.bottomRow}>
-          <Text style={[styles.bottomLabel, { color: colors.mutedForeground }]}>
-            Déjà un compte ?{" "}
-          </Text>
+          <Text style={[styles.bottomLabel, { color: colors.mutedForeground }]}>Déjà un compte ? </Text>
           <TouchableOpacity onPress={() => router.back()}>
             <Text style={[styles.bottomLink, { color: colors.primary }]}>Se connecter</Text>
           </TouchableOpacity>
@@ -217,34 +205,31 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   scroll: { paddingHorizontal: 28 },
-  backBtn: { marginBottom: 24 },
-  backCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    alignSelf: "flex-start",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 6,
-    elevation: 2,
-  },
+  brand: { alignItems: "center", marginBottom: 36 },
   logoBox: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
+    width: 62,
+    height: 62,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 18,
+    marginBottom: 14,
     shadowColor: "#0A4FFF",
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.28,
-    shadowRadius: 12,
-    elevation: 7,
+    shadowOpacity: 0.3,
+    shadowRadius: 14,
+    elevation: 8,
   },
-  title: { fontSize: 26, fontFamily: "Inter_700Bold", marginBottom: 6 },
+  appName: { fontSize: 20, fontFamily: "Inter_700Bold", letterSpacing: 1.5 },
+  appTagline: { fontSize: 13, fontFamily: "Inter_400Regular", marginTop: 4 },
+  backRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 20,
+    alignSelf: "flex-start",
+  },
+  backText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  title: { fontSize: 28, fontFamily: "Inter_700Bold", marginBottom: 6 },
   subtitle: { fontSize: 14, fontFamily: "Inter_400Regular", lineHeight: 22, marginBottom: 28 },
   socialBtn: {
     flexDirection: "row",
