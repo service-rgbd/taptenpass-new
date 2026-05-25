@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "jHqg3dThwQ57nQ6sYpdL8"
+uri = "file://artifacts/mobile/assets/images/icon.png"
+type = "image"
+title = "chap_credit_app_icon"

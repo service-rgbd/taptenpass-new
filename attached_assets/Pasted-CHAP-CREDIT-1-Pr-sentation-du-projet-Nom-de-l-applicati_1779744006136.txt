@@ -1,0 +1,309 @@
+CHAP-CREDIT
+1. Présentation du projet
+Nom de l'application : CHAP-CREDIT
+Type :
+Application mobile de souscription et d'achat de forfaits Internet.
+Objectif principal :
+Permettre aux utilisateurs d'acheter un forfait Internet rapidement, avec une expérience fluide en 3 clics maximum, sans processus complexe.
+L'application doit fonctionner comme un portefeuille numérique moderne : rapide, intuitive, minimaliste et sécurisée.
+Exemple de parcours :
+Connexion → Choix opérateur → Choix forfait → Paiement → Confirmation immédiate
+2. Objectifs métier
+CHAP-CREDIT devra permettre :
+Acheter un forfait internet en quelques secondes
+Simplifier les paiements mobiles
+Réduire les étapes inutiles
+Suivre les achats effectués
+Conserver l'historique des transactions
+Recevoir des notifications automatiques
+Gérer plusieurs opérateurs
+Objectifs futurs :
+Paiement de factures
+Achat de crédit téléphonique
+Transfert entre utilisateurs
+Portefeuille interne
+Programme fidélité
+3. Public cible
+Utilisateurs smartphones :
+Étudiants
+Professionnels
+Entreprises
+Utilisateurs quotidiens d'internet
+Clients Mobile Money
+Zone initiale :
+Côte d'Ivoire
+Opérateurs supportés :
+Orange
+MTN
+Moov
+Évolution possible :
+Sénégal
+Bénin
+Burkina Faso
+Mali
+4. Identité visuelle
+L'objectif est une interface moderne inspirée des applications financières premium.
+Style :
+Minimaliste
+Élégant
+Très fluide
+Animations douces
+Boutons larges
+Navigation simple
+Palette couleurs :
+Couleur primaire :
+Bleu profond
+#0A4FFF
+Couleur secondaire :
+Orange léger
+#FF8C42
+Couleur arrière-plan :
+#F5F7FA
+Texte principal :
+#1A1A1A
+Succès :
+#2ECC71
+Erreur :
+#FF3B30
+5. Typographie
+Police :
+Poppins
+Inter
+Tailles :
+Titre principal :
+28px
+Titre secondaire :
+22px
+Texte :
+16px
+Petit texte :
+13px
+6. Architecture écrans
+Splash Screen
+Affichage :
+Logo CHAP-CREDIT
+Animation logo
+Slogan
+Exemple :
+"Internet en quelques secondes"
+Durée :
+2–3 secondes
+Écran Connexion
+Méthodes :
+Email
+Numéro téléphone
+Google (optionnel)
+Champs :
+Numéro :
++225 XX XX XX XX XX
+Mot de passe
+Boutons :
+Se connecter
+Créer un compte
+Mot de passe oublié
+Écran Inscription
+Informations :
+Nom complet :
+Jean Dupont
+Téléphone :
++225 XX XX XX XX XX
+Email :
+jean@gmail.com
+Mot de passe
+Confirmation mot de passe
+Écran Accueil
+En haut :
+Photo profil
+Bonjour Vinset 👋
+Carte portefeuille :
+Solde : 5 000 FCFA
+Actions rapides :
+📶 Acheter internet
+📱 Acheter crédit
+💳 Paiement facture
+Historique rapide :
+Dernière transaction
+Statut
+Montant
+Navigation basse :
+Accueil
+Historique
+Paiement
+Profil
+Écran Achat Forfait
+Étape 1 :
+Choisir opérateur
+Affichage cartes :
+Orange
+MTN
+Moov
+Étape 2 :
+Entrer numéro :
++225 XX XX XX XX XX
+Étape 3 :
+Choisir forfait :
+Carte :
+1 Go
+1000 FCFA
+24 heures
+Carte :
+5 Go
+5000 FCFA
+7 jours
+Carte :
+20 Go
+15000 FCFA
+30 jours
+Écran Paiement
+Modes :
+Wave
+Orange Money
+MTN Money
+Carte bancaire
+Affichage :
+Résumé :
+Forfait : 5Go
+Montant : 5000 FCFA
+Numéro : +225XXXXXXXX
+Bouton :
+Payer maintenant
+Animation :
+Paiement en cours...
+Puis :
+✓ Paiement réussi
+Historique
+Filtres :
+Tous
+Réussi
+En attente
+Échoué
+Exemple :
+Orange 5Go
+5000 FCFA
+✓ Réussi
+Profil utilisateur
+Photo
+Nom
+Téléphone
+Email
+Modifier profil
+Changer mot de passe
+Déconnexion
+7. Base de données Firestore
+Collection :
+Users
+{
+id:"",
+fullname:"",
+phone:"",
+email:"",
+photo:"",
+walletBalance:0,
+createdAt:""
+}
+Collection :
+Transactions
+{
+id:"",
+userId:"",
+operator:"",
+phone:"",
+package:"",
+amount:"",
+paymentMethod:"",
+status:"",
+transactionReference:"",
+createdAt:""
+}
+Collection :
+Notifications
+{
+id:"",
+userId:"",
+title:"",
+body:"",
+isRead:false
+}
+Collection :
+Packages
+{
+id:"",
+operator:"",
+name:"",
+price:"",
+validity:""
+}
+8. Notifications automatiques
+Déclencheurs :
+Après achat réussi :
+Votre forfait a été activé.
+Paiement échoué :
+Le paiement a échoué.
+Promotion :
+Promotion : 10% sur les forfaits.
+Expiration proche :
+Votre forfait expire bientôt.
+9. Dashboard administrateur
+Statistiques :
+Nombre utilisateurs
+Revenus
+Transactions
+Paiements réussis
+Paiements échoués
+Gestion :
+Utilisateurs
+Forfaits
+Promotions
+Remboursements
+Notifications
+10. Technologies
+Frontend :
+React Native
+Expo
+Backend :
+NodeJS
+ExpressJS
+Base données :
+Firebase Firestore
+Authentification :
+Firebase Auth
+Notifications :
+Firebase Cloud Messaging
+Paiements :
+Wave API
+Orange Money API
+MTN API
+Stripe
+11. Sécurité
+Authentification :
+JWT
+Firebase Token
+Protection :
+HTTPS
+Chiffrement données
+Anti-spam
+Limitation requêtes
+Validation côté serveur
+Vérification signature paiement
+Journalisation :
+Adresse IP
+Heure
+Référence transaction
+Activité utilisateur
+12. Performance attendue
+Temps de chargement :
+< 2 secondes
+Temps validation paiement :
+< 5 secondes
+Disponibilité :
+99,9 %
+13. Version MVP
+Fonctionnalités première version :
+✅ Connexion
+✅ Achat forfait internet
+✅ Paiement Mobile Money
+✅ Historique
+✅ Notifications
+✅ Profil utilisateur
+✅ Dashboard Admin
+Cette version ressemble davantage à

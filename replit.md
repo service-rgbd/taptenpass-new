@@ -1,6 +1,6 @@
-# [Project name]
+# CHAP-CREDIT
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Mobile app for purchasing internet packages in Côte d'Ivoire — users can buy forfaits from Orange, MTN, and Moov in 3 taps.
 
 ## Run & Operate
 
@@ -14,23 +14,43 @@ _Replace the heading above with the project's name, and this line with one sente
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
+- Mobile: Expo (React Native) with Expo Router
 - API: Express 5
 - DB: PostgreSQL + Drizzle ORM
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
 - Build: esbuild (CJS bundle)
+- Local state: AsyncStorage (`@react-native-async-storage/async-storage`)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/mobile/` — Expo app (main product)
+- `artifacts/mobile/app/(auth)/` — Login & Register screens
+- `artifacts/mobile/app/(tabs)/` — Home, History, Buy (purchase flow), Profile tabs
+- `artifacts/mobile/app/payment.tsx` — Payment modal screen
+- `artifacts/mobile/context/AuthContext.tsx` — Auth state (AsyncStorage-backed)
+- `artifacts/mobile/context/DataContext.tsx` — Transaction state
+- `artifacts/mobile/constants/packages.ts` — Package & operator data
+- `artifacts/mobile/types/index.ts` — TypeScript types
+- `lib/api-spec/openapi.yaml` — API contract source of truth
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Frontend-only MVP: All state stored in AsyncStorage, no backend needed for v1
+- Auth is simulated (stored phone number match) — real JWT/Firebase auth is a future upgrade
+- 3-step purchase flow inline in the Buy tab (no nested navigation complexity)
+- Payment processing is a modal stack screen (not a tab) for focus and immersion
+- Operator colors and packages are static constants (easily replaced with API calls)
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+CHAP-CREDIT lets users in Côte d'Ivoire:
+1. Register/login with phone number
+2. View their wallet balance on the home screen
+3. Buy internet packages from Orange, MTN, or Moov in 3 steps
+4. Pay via Wave, Orange Money, MTN Money, or card
+5. View full transaction history with status filters
+6. Manage their profile
 
 ## User preferences
 
@@ -38,7 +58,10 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- AsyncStorage is async — always await calls, handle errors with try/catch
+- Do NOT run `npx expo start` in shell — use `restart_workflow` tool instead
+- App icon path: `assets/images/icon.png`
+- Operator colors defined in `constants/packages.ts` as `OPERATOR_COLORS`
 
 ## Pointers
 
