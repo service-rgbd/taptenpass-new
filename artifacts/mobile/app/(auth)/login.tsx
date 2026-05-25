@@ -74,35 +74,47 @@ export default function LoginScreen() {
             Bienvenue ! Connectez-vous à votre compte
           </Text>
 
-          <View style={styles.field}>
-            <Text style={[styles.label, { color: colors.mutedForeground }]}>Numéro de téléphone</Text>
-            <View style={[styles.inputWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Feather name="phone" size={16} color={colors.mutedForeground} style={styles.icon} />
-              <TextInput
-                style={[styles.input, { color: colors.foreground }]}
-                placeholder="+225 XX XX XX XX XX"
-                placeholderTextColor={colors.mutedForeground}
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-                autoComplete="tel"
-              />
+          {/* Single grouped card for all inputs */}
+          <View style={[styles.inputCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            {/* Phone field */}
+            <View style={styles.inputRow}>
+              <View style={[styles.iconBox, { backgroundColor: colors.accent }]}>
+                <Feather name="phone" size={15} color={colors.primary} />
+              </View>
+              <View style={styles.inputInner}>
+                <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Téléphone</Text>
+                <TextInput
+                  style={[styles.input, { color: colors.foreground }]}
+                  placeholder="+225 XX XX XX XX XX"
+                  placeholderTextColor={colors.mutedForeground}
+                  value={phone}
+                  onChangeText={setPhone}
+                  keyboardType="phone-pad"
+                  autoComplete="tel"
+                />
+              </View>
             </View>
-          </View>
 
-          <View style={styles.field}>
-            <Text style={[styles.label, { color: colors.mutedForeground }]}>Mot de passe</Text>
-            <View style={[styles.inputWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Feather name="lock" size={16} color={colors.mutedForeground} style={styles.icon} />
-              <TextInput
-                style={[styles.input, { color: colors.foreground }]}
-                placeholder="••••••••"
-                placeholderTextColor={colors.mutedForeground}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPass}
-                autoComplete="password"
-              />
+            {/* Divider */}
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+            {/* Password field */}
+            <View style={styles.inputRow}>
+              <View style={[styles.iconBox, { backgroundColor: colors.accent }]}>
+                <Feather name="lock" size={15} color={colors.primary} />
+              </View>
+              <View style={styles.inputInner}>
+                <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Mot de passe</Text>
+                <TextInput
+                  style={[styles.input, { color: colors.foreground }]}
+                  placeholder="••••••••"
+                  placeholderTextColor={colors.mutedForeground}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPass}
+                  autoComplete="password"
+                />
+              </View>
               <TouchableOpacity onPress={() => setShowPass(!showPass)} style={styles.eyeBtn}>
                 <Feather name={showPass ? "eye-off" : "eye"} size={16} color={colors.mutedForeground} />
               </TouchableOpacity>
@@ -177,7 +189,6 @@ const styles = StyleSheet.create({
   form: {
     padding: 24,
     paddingTop: 32,
-    gap: 0,
   },
   title: {
     fontSize: 26,
@@ -187,31 +198,55 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     fontFamily: "Inter_400Regular",
-    marginBottom: 32,
+    marginBottom: 28,
   },
-  field: { marginBottom: 18 },
-  label: {
-    fontSize: 12,
-    fontFamily: "Inter_600SemiBold",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    marginBottom: 8,
+  inputCard: {
+    borderWidth: 1,
+    borderRadius: 18,
+    overflow: "hidden",
+    marginBottom: 14,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  inputWrap: {
+  inputRow: {
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1,
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    height: 52,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    gap: 12,
   },
-  icon: { marginRight: 10 },
-  input: {
+  iconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  inputInner: {
     flex: 1,
+  },
+  fieldLabel: {
+    fontSize: 11,
+    fontFamily: "Inter_600SemiBold",
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
+    marginBottom: 3,
+  },
+  input: {
     fontSize: 15,
     fontFamily: "Inter_400Regular",
+    padding: 0,
+    margin: 0,
   },
-  eyeBtn: { padding: 4 },
+  divider: {
+    height: 1,
+    marginLeft: 64,
+  },
+  eyeBtn: { padding: 4, flexShrink: 0 },
   forgotWrap: { alignSelf: "flex-end", marginBottom: 28, marginTop: 4 },
   forgot: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
   btn: {

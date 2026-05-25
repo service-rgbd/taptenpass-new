@@ -79,63 +79,111 @@ export default function RegisterScreen() {
             Rejoignez CHAP-CREDIT et simplifiez vos achats
           </Text>
 
-          {[
-            { label: "Nom complet", value: fullname, setter: setFullname, icon: "user" as const, placeholder: "Jean Dupont", keyboard: "default" as const },
-            { label: "Numéro de téléphone", value: phone, setter: setPhone, icon: "phone" as const, placeholder: "+225 07 XX XX XX XX", keyboard: "phone-pad" as const },
-            { label: "Email", value: email, setter: setEmail, icon: "mail" as const, placeholder: "jean@gmail.com", keyboard: "email-address" as const },
-          ].map((field) => (
-            <View key={field.label} style={styles.field}>
-              <Text style={[styles.label, { color: colors.mutedForeground }]}>{field.label}</Text>
-              <View style={[styles.inputWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <Feather name={field.icon} size={16} color={colors.mutedForeground} style={styles.icon} />
+          {/* Grouped identity card */}
+          <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>Informations personnelles</Text>
+          <View style={[styles.inputCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={styles.inputRow}>
+              <View style={[styles.iconBox, { backgroundColor: colors.accent }]}>
+                <Feather name="user" size={15} color={colors.primary} />
+              </View>
+              <View style={styles.inputInner}>
+                <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Nom complet</Text>
                 <TextInput
                   style={[styles.input, { color: colors.foreground }]}
-                  placeholder={field.placeholder}
+                  placeholder="Jean Dupont"
                   placeholderTextColor={colors.mutedForeground}
-                  value={field.value}
-                  onChangeText={field.setter}
-                  keyboardType={field.keyboard}
-                  autoCapitalize={field.keyboard === "default" ? "words" : "none"}
+                  value={fullname}
+                  onChangeText={setFullname}
+                  autoCapitalize="words"
                 />
               </View>
             </View>
-          ))}
 
-          <View style={styles.field}>
-            <Text style={[styles.label, { color: colors.mutedForeground }]}>Mot de passe</Text>
-            <View style={[styles.inputWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Feather name="lock" size={16} color={colors.mutedForeground} style={styles.icon} />
-              <TextInput
-                style={[styles.input, { color: colors.foreground }]}
-                placeholder="••••••••"
-                placeholderTextColor={colors.mutedForeground}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPass}
-              />
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+            <View style={styles.inputRow}>
+              <View style={[styles.iconBox, { backgroundColor: colors.accent }]}>
+                <Feather name="phone" size={15} color={colors.primary} />
+              </View>
+              <View style={styles.inputInner}>
+                <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Téléphone</Text>
+                <TextInput
+                  style={[styles.input, { color: colors.foreground }]}
+                  placeholder="+225 07 XX XX XX XX"
+                  placeholderTextColor={colors.mutedForeground}
+                  value={phone}
+                  onChangeText={setPhone}
+                  keyboardType="phone-pad"
+                />
+              </View>
+            </View>
+
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+            <View style={styles.inputRow}>
+              <View style={[styles.iconBox, { backgroundColor: colors.accent }]}>
+                <Feather name="mail" size={15} color={colors.primary} />
+              </View>
+              <View style={styles.inputInner}>
+                <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Email</Text>
+                <TextInput
+                  style={[styles.input, { color: colors.foreground }]}
+                  placeholder="jean@gmail.com"
+                  placeholderTextColor={colors.mutedForeground}
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* Grouped password card */}
+          <Text style={[styles.sectionLabel, { color: colors.mutedForeground, marginTop: 20 }]}>Sécurité</Text>
+          <View style={[styles.inputCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={styles.inputRow}>
+              <View style={[styles.iconBox, { backgroundColor: colors.accent }]}>
+                <Feather name="lock" size={15} color={colors.primary} />
+              </View>
+              <View style={styles.inputInner}>
+                <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Mot de passe</Text>
+                <TextInput
+                  style={[styles.input, { color: colors.foreground }]}
+                  placeholder="••••••••"
+                  placeholderTextColor={colors.mutedForeground}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPass}
+                />
+              </View>
               <TouchableOpacity onPress={() => setShowPass(!showPass)} style={styles.eyeBtn}>
                 <Feather name={showPass ? "eye-off" : "eye"} size={16} color={colors.mutedForeground} />
               </TouchableOpacity>
             </View>
-          </View>
 
-          <View style={styles.field}>
-            <Text style={[styles.label, { color: colors.mutedForeground }]}>Confirmer le mot de passe</Text>
-            <View style={[styles.inputWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Feather name="lock" size={16} color={colors.mutedForeground} style={styles.icon} />
-              <TextInput
-                style={[styles.input, { color: colors.foreground }]}
-                placeholder="••••••••"
-                placeholderTextColor={colors.mutedForeground}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry={!showPass}
-              />
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+            <View style={styles.inputRow}>
+              <View style={[styles.iconBox, { backgroundColor: colors.accent }]}>
+                <Feather name="shield" size={15} color={colors.primary} />
+              </View>
+              <View style={styles.inputInner}>
+                <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Confirmer le mot de passe</Text>
+                <TextInput
+                  style={[styles.input, { color: colors.foreground }]}
+                  placeholder="••••••••"
+                  placeholderTextColor={colors.mutedForeground}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry={!showPass}
+                />
+              </View>
             </View>
           </View>
 
           <TouchableOpacity
-            style={[styles.btn, { backgroundColor: colors.primary, opacity: loading ? 0.7 : 1, marginTop: 8 }]}
+            style={[styles.btn, { backgroundColor: colors.primary, opacity: loading ? 0.7 : 1, marginTop: 28 }]}
             onPress={handleRegister}
             disabled={loading}
             activeOpacity={0.85}
@@ -200,25 +248,57 @@ const styles = StyleSheet.create({
   form: { padding: 24, paddingTop: 28 },
   title: { fontSize: 24, fontFamily: "Inter_700Bold", marginBottom: 6 },
   subtitle: { fontSize: 13, fontFamily: "Inter_400Regular", marginBottom: 28 },
-  field: { marginBottom: 16 },
-  label: {
+  sectionLabel: {
     fontSize: 11,
     fontFamily: "Inter_600SemiBold",
     textTransform: "uppercase",
-    letterSpacing: 0.5,
-    marginBottom: 8,
+    letterSpacing: 0.6,
+    marginBottom: 10,
   },
-  inputWrap: {
+  inputCard: {
+    borderWidth: 1,
+    borderRadius: 18,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  inputRow: {
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1,
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    height: 52,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    gap: 12,
   },
-  icon: { marginRight: 10 },
-  input: { flex: 1, fontSize: 15, fontFamily: "Inter_400Regular" },
-  eyeBtn: { padding: 4 },
+  iconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  inputInner: { flex: 1 },
+  fieldLabel: {
+    fontSize: 11,
+    fontFamily: "Inter_600SemiBold",
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
+    marginBottom: 3,
+  },
+  input: {
+    fontSize: 15,
+    fontFamily: "Inter_400Regular",
+    padding: 0,
+    margin: 0,
+  },
+  divider: {
+    height: 1,
+    marginLeft: 64,
+  },
+  eyeBtn: { padding: 4, flexShrink: 0 },
   btn: {
     height: 54,
     borderRadius: 16,
