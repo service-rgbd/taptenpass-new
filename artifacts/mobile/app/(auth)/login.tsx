@@ -51,227 +51,242 @@ export default function LoginScreen() {
   }
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { backgroundColor: colors.primary, paddingTop: topPad + 24 }]}>
-        <View style={styles.logoCircle}>
-          <Feather name="zap" size={28} color={colors.primary} />
-        </View>
-        <Text style={styles.logoText}>CHAP-CREDIT</Text>
-        <Text style={styles.tagline}>Internet en quelques secondes</Text>
-      </View>
-
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+    <KeyboardAvoidingView
+      style={[styles.root, { backgroundColor: colors.background }]}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView
+        contentContainerStyle={[styles.scroll, { paddingTop: topPad + 32, paddingBottom: bottomPad + 32 }]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView
-          contentContainerStyle={[styles.form, { paddingBottom: bottomPad + 24 }]}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <Text style={[styles.title, { color: colors.foreground }]}>Connexion</Text>
-          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-            Bienvenue ! Connectez-vous à votre compte
-          </Text>
-
-          {/* Single grouped card for all inputs */}
-          <View style={[styles.inputCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            {/* Phone field */}
-            <View style={styles.inputRow}>
-              <View style={[styles.iconBox, { backgroundColor: colors.accent }]}>
-                <Feather name="phone" size={15} color={colors.primary} />
-              </View>
-              <View style={styles.inputInner}>
-                <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Téléphone</Text>
-                <TextInput
-                  style={[styles.input, { color: colors.foreground }]}
-                  placeholder="+225 XX XX XX XX XX"
-                  placeholderTextColor={colors.mutedForeground}
-                  value={phone}
-                  onChangeText={setPhone}
-                  keyboardType="phone-pad"
-                  autoComplete="tel"
-                />
-              </View>
-            </View>
-
-            {/* Divider */}
-            <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-            {/* Password field */}
-            <View style={styles.inputRow}>
-              <View style={[styles.iconBox, { backgroundColor: colors.accent }]}>
-                <Feather name="lock" size={15} color={colors.primary} />
-              </View>
-              <View style={styles.inputInner}>
-                <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>Mot de passe</Text>
-                <TextInput
-                  style={[styles.input, { color: colors.foreground }]}
-                  placeholder="••••••••"
-                  placeholderTextColor={colors.mutedForeground}
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPass}
-                  autoComplete="password"
-                />
-              </View>
-              <TouchableOpacity onPress={() => setShowPass(!showPass)} style={styles.eyeBtn}>
-                <Feather name={showPass ? "eye-off" : "eye"} size={16} color={colors.mutedForeground} />
-              </TouchableOpacity>
-            </View>
+        {/* Brand */}
+        <View style={styles.brand}>
+          <View style={[styles.logoBox, { backgroundColor: colors.primary }]}>
+            <Feather name="zap" size={26} color="#FFF" />
           </View>
+          <Text style={[styles.appName, { color: colors.foreground }]}>CHAP-CREDIT</Text>
+          <Text style={[styles.appTagline, { color: colors.mutedForeground }]}>
+            Internet en quelques secondes
+          </Text>
+        </View>
 
-          <TouchableOpacity style={styles.forgotWrap}>
-            <Text style={[styles.forgot, { color: colors.primary }]}>Mot de passe oublié ?</Text>
-          </TouchableOpacity>
+        {/* Title */}
+        <Text style={[styles.title, { color: colors.foreground }]}>Connexion</Text>
+        <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+          Bon retour ! Entrez votre numéro pour continuer.
+        </Text>
 
-          <TouchableOpacity
-            style={[styles.btn, { backgroundColor: colors.primary, opacity: loading ? 0.7 : 1 }]}
-            onPress={handleLogin}
-            disabled={loading}
-            activeOpacity={0.85}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFF" />
-            ) : (
-              <Text style={styles.btnText}>Se connecter</Text>
-            )}
-          </TouchableOpacity>
+        {/* Phone */}
+        <View style={styles.fieldGroup}>
+          <Text style={[styles.label, { color: colors.mutedForeground }]}>Numéro de téléphone</Text>
+          <View style={[styles.flatInput, { backgroundColor: colors.card }]}>
+            <Feather name="phone" size={17} color={colors.primary} />
+            <TextInput
+              style={[styles.inputText, { color: colors.foreground }]}
+              placeholder="+225 07 XX XX XX XX"
+              placeholderTextColor={colors.mutedForeground}
+              value={phone}
+              onChangeText={setPhone}
+              keyboardType="phone-pad"
+              autoComplete="tel"
+            />
+          </View>
+        </View>
 
-          <View style={styles.registerRow}>
-            <Text style={[styles.registerLabel, { color: colors.mutedForeground }]}>
-              Pas encore de compte ?{" "}
-            </Text>
-            <TouchableOpacity onPress={() => router.push("/(auth)/register")}>
-              <Text style={[styles.registerLink, { color: colors.primary }]}>Créer un compte</Text>
+        {/* Password */}
+        <View style={styles.fieldGroup}>
+          <Text style={[styles.label, { color: colors.mutedForeground }]}>Mot de passe</Text>
+          <View style={[styles.flatInput, { backgroundColor: colors.card }]}>
+            <Feather name="lock" size={17} color={colors.primary} />
+            <TextInput
+              style={[styles.inputText, { color: colors.foreground }]}
+              placeholder="••••••••"
+              placeholderTextColor={colors.mutedForeground}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPass}
+              autoComplete="password"
+            />
+            <TouchableOpacity onPress={() => setShowPass(!showPass)}>
+              <Feather name={showPass ? "eye-off" : "eye"} size={17} color={colors.mutedForeground} />
             </TouchableOpacity>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </View>
+        </View>
+
+        <TouchableOpacity style={styles.forgotWrap}>
+          <Text style={[styles.forgot, { color: colors.primary }]}>Mot de passe oublié ?</Text>
+        </TouchableOpacity>
+
+        {/* CTA */}
+        <TouchableOpacity
+          style={[styles.primaryBtn, { backgroundColor: colors.primary, opacity: loading ? 0.75 : 1 }]}
+          onPress={handleLogin}
+          disabled={loading}
+          activeOpacity={0.85}
+        >
+          {loading ? (
+            <ActivityIndicator color="#FFF" />
+          ) : (
+            <Text style={styles.primaryBtnText}>Se connecter</Text>
+          )}
+        </TouchableOpacity>
+
+        {/* Separator */}
+        <View style={styles.orRow}>
+          <View style={[styles.orLine, { backgroundColor: colors.border }]} />
+          <Text style={[styles.orText, { color: colors.mutedForeground }]}>ou</Text>
+          <View style={[styles.orLine, { backgroundColor: colors.border }]} />
+        </View>
+
+        {/* Social */}
+        <TouchableOpacity
+          style={[styles.socialBtn, { backgroundColor: colors.card }]}
+          onPress={() => Alert.alert("Google", "Connexion Google bientôt disponible.")}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.googleG}>G</Text>
+          <Text style={[styles.socialBtnText, { color: colors.foreground }]}>Continuer avec Google</Text>
+        </TouchableOpacity>
+
+        {Platform.OS !== "android" && (
+          <TouchableOpacity
+            style={[styles.socialBtn, styles.appleBtn]}
+            onPress={() => Alert.alert("Apple", "Connexion Apple bientôt disponible.")}
+            activeOpacity={0.8}
+          >
+            <Feather name="smartphone" size={18} color="#FFF" />
+            <Text style={styles.appleBtnText}>Continuer avec Apple</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Register link */}
+        <View style={styles.bottomRow}>
+          <Text style={[styles.bottomLabel, { color: colors.mutedForeground }]}>
+            Pas encore de compte ?{" "}
+          </Text>
+          <TouchableOpacity onPress={() => router.push("/(auth)/register")}>
+            <Text style={[styles.bottomLink, { color: colors.primary }]}>Créer un compte</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  header: {
-    alignItems: "center",
-    paddingBottom: 32,
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
-  },
-  logoCircle: {
-    width: 64,
-    height: 64,
+  scroll: { paddingHorizontal: 28 },
+  brand: { alignItems: "center", marginBottom: 40 },
+  logoBox: {
+    width: 62,
+    height: 62,
     borderRadius: 20,
-    backgroundColor: "#FFF",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 6,
+    marginBottom: 14,
+    shadowColor: "#0A4FFF",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 14,
+    elevation: 8,
   },
-  logoText: {
-    color: "#FFF",
-    fontSize: 22,
+  appName: {
+    fontSize: 20,
     fontFamily: "Inter_700Bold",
-    letterSpacing: 1,
+    letterSpacing: 1.5,
   },
-  tagline: {
-    color: "rgba(255,255,255,0.75)",
+  appTagline: {
     fontSize: 13,
     fontFamily: "Inter_400Regular",
     marginTop: 4,
   },
-  form: {
-    padding: 24,
-    paddingTop: 32,
-  },
   title: {
-    fontSize: 26,
+    fontSize: 28,
     fontFamily: "Inter_700Bold",
     marginBottom: 6,
   },
   subtitle: {
     fontSize: 14,
     fontFamily: "Inter_400Regular",
-    marginBottom: 28,
+    lineHeight: 22,
+    marginBottom: 32,
   },
-  inputCard: {
-    borderWidth: 1,
-    borderRadius: 18,
-    overflow: "hidden",
-    marginBottom: 14,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  inputRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    gap: 12,
-  },
-  iconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-  },
-  inputInner: {
-    flex: 1,
-  },
-  fieldLabel: {
-    fontSize: 11,
+  fieldGroup: { marginBottom: 18 },
+  label: {
+    fontSize: 12,
     fontFamily: "Inter_600SemiBold",
     textTransform: "uppercase",
-    letterSpacing: 0.4,
-    marginBottom: 3,
+    letterSpacing: 0.5,
+    marginBottom: 10,
   },
-  input: {
+  flatInput: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 18,
+    height: 56,
+    borderRadius: 16,
+  },
+  inputText: {
+    flex: 1,
     fontSize: 15,
     fontFamily: "Inter_400Regular",
-    padding: 0,
-    margin: 0,
   },
-  divider: {
-    height: 1,
-    marginLeft: 64,
-  },
-  eyeBtn: { padding: 4, flexShrink: 0 },
-  forgotWrap: { alignSelf: "flex-end", marginBottom: 28, marginTop: 4 },
+  forgotWrap: { alignSelf: "flex-end", marginBottom: 28, marginTop: -6 },
   forgot: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-  btn: {
-    height: 54,
+  primaryBtn: {
+    height: 56,
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 24,
+    marginBottom: 28,
     shadowColor: "#0A4FFF",
-    shadowOffset: { width: 0, height: 6 },
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.35,
-    shadowRadius: 12,
+    shadowRadius: 14,
     elevation: 8,
   },
-  btnText: {
+  primaryBtnText: {
     color: "#FFF",
     fontSize: 16,
     fontFamily: "Inter_700Bold",
     letterSpacing: 0.3,
   },
-  registerRow: {
+  orRow: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 20 },
+  orLine: { flex: 1, height: 1 },
+  orText: { fontSize: 13, fontFamily: "Inter_500Medium" },
+  socialBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    height: 52,
+    borderRadius: 16,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  googleG: {
+    fontSize: 18,
+    fontFamily: "Inter_700Bold",
+    color: "#4285F4",
+  },
+  socialBtnText: {
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
+  },
+  appleBtn: { backgroundColor: "#000" },
+  appleBtnText: { color: "#FFF", fontSize: 15, fontFamily: "Inter_600SemiBold" },
+  bottomRow: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
+    marginTop: 28,
   },
-  registerLabel: { fontSize: 14, fontFamily: "Inter_400Regular" },
-  registerLink: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  bottomLabel: { fontSize: 14, fontFamily: "Inter_400Regular" },
+  bottomLink: { fontSize: 14, fontFamily: "Inter_700Bold" },
 });
