@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
 import { useData } from "@/context/DataContext";
 import { PACKAGES, OPERATOR_COLORS } from "@/constants/packages";
+import OperatorLogo from "@/components/OperatorLogo";
 import { useColors } from "@/hooks/useColors";
 
 type Operator = "Orange" | "MTN" | "Moov";
@@ -132,7 +133,7 @@ export default function HomeScreen() {
                 }}
                 activeOpacity={0.7}
               >
-                <View style={[styles.opDot, { backgroundColor: color }]} />
+                <OperatorLogo operator={op} size={32} radius={8} />
                 <Text
                   style={[
                     styles.opLabel,
@@ -289,7 +290,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 8,
   },
-  opDot: { width: 8, height: 8, borderRadius: 4 },
   opLabel: { fontSize: 14 },
 
   pkgRow: {

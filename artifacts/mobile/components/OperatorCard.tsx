@@ -1,6 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import OperatorLogo from "@/components/OperatorLogo";
 import { useColors } from "@/hooks/useColors";
 
 interface OperatorCardProps {
@@ -26,9 +27,7 @@ export default function OperatorCard({ name, color, selected, onPress }: Operato
       onPress={onPress}
       activeOpacity={0.8}
     >
-      <View style={[styles.logoCircle, { backgroundColor: color + "20" }]}>
-        <Text style={[styles.logoText, { color }]}>{name.slice(0, 2).toUpperCase()}</Text>
-      </View>
+      <OperatorLogo operator={name} size={56} radius={14} />
       <Text style={[styles.name, { color: colors.foreground }]}>{name}</Text>
       {selected && (
         <View style={[styles.check, { backgroundColor: color }]}>
@@ -49,17 +48,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     gap: 10,
     position: "relative",
-  },
-  logoCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  logoText: {
-    fontSize: 18,
-    fontFamily: "Inter_700Bold",
   },
   name: {
     fontSize: 13,
