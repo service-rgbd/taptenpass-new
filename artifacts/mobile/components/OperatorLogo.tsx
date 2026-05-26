@@ -2,12 +2,19 @@ import React from "react";
 import { Image, StyleSheet, View } from "react-native";
 import { OPERATOR_COLORS } from "@/constants/packages";
 
-// To swap in real logos, replace the value for each operator below:
-// e.g. orange: require("@/assets/images/operators/orange.png")
+function safeRequire(loader: () => ReturnType<typeof require>): ReturnType<typeof require> | null {
+  try {
+    return loader();
+  } catch {
+    return null;
+  }
+}
+
+// To swap in real logos, replace the loader for each operator below.
 const OPERATOR_IMAGES: Record<string, ReturnType<typeof require> | null> = {
-  Orange: require("../assets/images/operators/orange.png"),
-  MTN: require("../assets/images/operators/mtn.png"),
-  Moov: require("../assets/images/operators/moov.png"),
+  Orange: safeRequire(() => require("../assets/images/operators/orange.png")),
+  MTN: safeRequire(() => require("../assets/images/operators/mtn.png")),
+  Moov: safeRequire(() => require("../assets/images/operators/moov.png")),
 };
 
 interface OperatorLogoProps {
