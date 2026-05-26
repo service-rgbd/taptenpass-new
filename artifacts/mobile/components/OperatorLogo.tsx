@@ -5,9 +5,9 @@ import { OPERATOR_COLORS } from "@/constants/packages";
 // To swap in real logos, replace the value for each operator below:
 // e.g. orange: require("@/assets/images/operators/orange.png")
 const OPERATOR_IMAGES: Record<string, ReturnType<typeof require> | null> = {
-  Orange: require("@/assets/images/operators/orange.png"),
-  MTN: require("@/assets/images/operators/mtn.png"),
-  Moov: require("@/assets/images/operators/moov.png"),
+  Orange: require("../assets/images/operators/orange.png"),
+  MTN: require("../assets/images/operators/mtn.png"),
+  Moov: require("../assets/images/operators/moov.png"),
 };
 
 interface OperatorLogoProps {
