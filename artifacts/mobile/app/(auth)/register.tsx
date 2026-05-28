@@ -20,6 +20,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { APP_NAME, APP_TAGLINE } from "@/constants/branding";
 import { formatPhoneInput, normalizePhone } from "@/constants/phone";
+import { ApiError } from "@/lib/api-client";
 import { useAuth } from "@/context/AuthContext";
 import { useColors } from "@/hooks/useColors";
 
@@ -91,8 +92,14 @@ export default function RegisterScreen() {
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         router.replace("/(tabs)");
       } else {
-        Alert.alert("Erreur", "Une erreur est survenue. Veuillez réessayer.");
+        Alert.alert("Erreur", "Inscription impossible. Ce numéro est peut-être déjà utilisé.");
       }
+    } catch (error) {
+      const message =
+        error instanceof ApiError
+          ? error.message
+          : "Une erreur est survenue. Veuillez réessayer.";
+      Alert.alert("Erreur", message);
     } finally {
       setLoading(false);
     }

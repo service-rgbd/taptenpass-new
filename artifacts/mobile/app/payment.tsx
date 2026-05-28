@@ -15,23 +15,24 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PAYMENT_METHODS } from "@/constants/packages";
 import { useAuth } from "@/context/AuthContext";
 import { useData } from "@/context/DataContext";
+import { ApiError } from "@/lib/api-client";
 import { useColors } from "@/hooks/useColors";
-import type { Transaction } from "@/types";
 
 type Stage = "choose" | "processing" | "success" | "failed";
 
 export default function PaymentScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { operator, phone, data, packageName, amount, validity } = useLocalSearchParams<{
+  const { operator, phone, data, packageName, amount, validity, packageId } = useLocalSearchParams<{
     operator: string;
     phone: string;
     data: string;
     packageName: string;
     amount: string;
     validity: string;
+    packageId: string;
   }>();
-  const { user, updateUser } = useAuth();
+  const { updateUser } = useAuth();
   const { addTransaction } = useData();
 
   const [payMethod, setPayMethod] = useState<string>("wave");
@@ -42,39 +43,34 @@ export default function PaymentScreen() {
   const amountNum = parseInt(amount ?? "0", 10);
 
   async function handlePay() {
+    if (!packageId || !phone) return;
+
     setStage("processing");
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-    await new Promise((r) => setTimeout(r, 2500));
+    try {
+      const result = await addTransaction({
+        packageId,
+        beneficiaryPhone: phone,
+        paymentMethod: payMethod,
+      });
 
-    const success = Math.random() > 0.1;
-    const ref = "CHC" + Date.now().toString().slice(-8);
+      await updateUser({ walletBalance: result.walletBalance });
 
-    const tx: Transaction = {
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 6),
-      userId: user?.id ?? "",
-      operator: operator ?? "",
-      phone: phone ?? "",
-      packageName: packageName ?? "",
-      data: data ?? "",
-      amount: amountNum,
-      paymentMethod: payMethod,
-      status: success ? "success" : "failed",
-      transactionReference: ref,
-      createdAt: new Date().toISOString(),
-    };
-
-    await addTransaction(tx);
-
-    if (success) {
-      if (user && user.walletBalance >= amountNum) {
-        await updateUser({ walletBalance: user.walletBalance - amountNum });
+      if (result.transaction.status === "success") {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        setStage("success");
+      } else {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        setStage("failed");
       }
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setStage("success");
-    } else {
+    } catch (error) {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      setStage("failed");
+      if (error instanceof ApiError && error.status === 402) {
+        setStage("failed");
+      } else {
+        setStage("failed");
+      }
     }
   }
 

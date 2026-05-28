@@ -1,7 +1,11 @@
+import { eq } from "drizzle-orm";
 import { Router, type IRouter } from "express";
 import { z } from "zod";
+import { db } from "@workspace/db";
+import { usersTable } from "@workspace/db/schema";
 import { requireAuth, type AuthenticatedRequest } from "../middleware/auth";
 import { validateBody } from "../middleware/validate";
+import { normalizePhone } from "../lib/phone";
 import {
   getCurrentUser,
   loginUser,
@@ -20,6 +24,22 @@ const registerSchema = z.object({
 const loginSchema = z.object({
   phone: z.string().trim().min(8, "Numéro de téléphone requis."),
   password: z.string().min(1, "Mot de passe requis."),
+});
+
+const checkPhoneSchema = z.object({
+  phone: z.string().trim().min(8, "Numéro de téléphone requis."),
+});
+
+router.post("/check-phone", validateBody(checkPhoneSchema), async (req, res, next) => {
+  try {
+    const phone = normalizePhone(req.body.phone);
+    const user = await db.query.usersTable.findFirst({
+      where: eq(usersTable.phone, phone),
+    });
+    res.json({ exists: !!user?.isActive });
+  } catch (error) {
+    next(error);
+  }
 });
 
 router.post("/register", validateBody(registerSchema), async (req, res, next) => {
