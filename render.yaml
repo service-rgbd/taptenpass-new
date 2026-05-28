@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: taptenpass-api
+    runtime: node
+    plan: free
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @workspace/api-server run build
+    startCommand: node --enable-source-maps artifacts/api-server/dist/index.mjs
+    healthCheckPath: /api/healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "24"
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: INITIAL_WALLET_BALANCE
+        value: "5000"
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: LOG_LEVEL
+        value: info
+      - key: PAYMENT_CALLBACK_BASE_URL
+        value: https://api.taptenpass.ci
+      # À définir dans le dashboard Render (secrets) :
+      # DATABASE_URL, JWT_SECRET
