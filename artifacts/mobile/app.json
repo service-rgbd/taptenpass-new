@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "CHAP-CREDIT",
+    "name": "TAPTENPASS",
     "slug": "mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -14,9 +14,14 @@
       "backgroundColor": "#0A4FFF"
     },
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSContactsUsageDescription": "TAPTENPASS utilise vos contacts pour vous aider a remplir rapidement un numero de telephone."
+      }
     },
-    "android": {},
+    "android": {
+      "permissions": ["READ_CONTACTS"]
+    },
     "web": {
       "favicon": "./assets/images/icon.png"
     },

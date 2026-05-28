@@ -27,7 +27,7 @@ export default function OperatorCard({ name, color, selected, onPress }: Operato
       onPress={onPress}
       activeOpacity={0.8}
     >
-      <OperatorLogo operator={name} size={56} radius={14} />
+      <OperatorLogo operator={name} size={76} radius={18} />
       <Text style={[styles.name, { color: colors.foreground }]}>{name}</Text>
       {selected && (
         <View style={[styles.check, { backgroundColor: color }]}>
@@ -43,10 +43,10 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 20,
-    paddingHorizontal: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 6,
     borderRadius: 16,
-    gap: 10,
+    gap: 8,
     position: "relative",
   },
   name: {

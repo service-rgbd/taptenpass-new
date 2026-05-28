@@ -2,7 +2,9 @@ import express, { type Express } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
 import router from "./routes";
+import { env } from "./lib/env";
 import { logger } from "./lib/logger";
+import { errorHandler } from "./middleware/error-handler";
 
 const app: Express = express();
 
@@ -25,10 +27,16 @@ app.use(
     },
   }),
 );
-app.use(cors());
+
+app.use(
+  cors({
+    origin: env.corsOrigin === "*" ? true : env.corsOrigin.split(","),
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
+app.use(errorHandler);
 
 export default app;

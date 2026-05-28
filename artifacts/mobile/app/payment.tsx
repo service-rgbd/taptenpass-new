@@ -173,9 +173,9 @@ export default function PaymentScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { backgroundColor: colors.card, paddingTop: topPad + 16, borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { backgroundColor: colors.background, paddingTop: topPad + 16, borderBottomColor: colors.border }]}>
         <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()} activeOpacity={0.7}>
-          <Feather name="x" size={20} color={colors.foreground} />
+          <Feather name="arrow-left" size={20} color={colors.foreground} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.foreground }]}>Paiement</Text>
         <View style={{ width: 36 }} />
@@ -185,28 +185,37 @@ export default function PaymentScreen() {
         contentContainerStyle={[styles.content, { paddingBottom: bottomPad + 16 }]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={[styles.summaryCard, { backgroundColor: colors.primary }]}>
-          <Text style={styles.summaryCardTitle}>Résumé de la commande</Text>
-          <View style={styles.summaryCardAmount}>
-            <Text style={styles.summaryAmountLabel}>Montant total</Text>
-            <Text style={styles.summaryAmount}>{amountNum.toLocaleString("fr-CI")} FCFA</Text>
-          </View>
-          <View style={styles.summaryCardRows}>
-            {[
-              { label: "Opérateur", value: operator ?? "" },
-              { label: "Numéro", value: phone ?? "" },
-              { label: "Forfait", value: `${data}` },
-              { label: "Validité", value: validity ?? "" },
-            ].map((row) => (
-              <View key={row.label} style={styles.cardRow}>
-                <Text style={styles.cardRowLabel}>{row.label}</Text>
-                <Text style={styles.cardRowValue}>{row.value}</Text>
-              </View>
-            ))}
-          </View>
+        <View style={[styles.heroCard, { backgroundColor: colors.card, borderColor: colors.border, shadowColor: colors.shadow }]}>
+          <Text style={[styles.heroEyebrow, { color: colors.primary }]}>Confirmation</Text>
+          <Text style={[styles.heroAmount, { color: colors.foreground }]}>{amountNum.toLocaleString("fr-CI")} FCFA</Text>
+          <Text style={[styles.heroSub, { color: colors.mutedForeground }]}>
+            {data} · {validity} · {operator}
+          </Text>
         </View>
 
-        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Mode de paiement</Text>
+        <View style={[styles.detailsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          {[
+            { label: "Numero", value: phone ?? "" },
+            { label: "Forfait", value: `${data}` },
+            { label: "Validite", value: validity ?? "" },
+            { label: "Visa envoye", value: `${amountNum.toLocaleString("fr-CI")} FCFA` },
+            { label: "Frais", value: "0 FCFA" },
+            { label: "Total", value: `${amountNum.toLocaleString("fr-CI")} FCFA` },
+          ].map((row, index, rows) => (
+            <View
+              key={row.label}
+              style={[
+                styles.detailRow,
+                index < rows.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+              ]}
+            >
+              <Text style={[styles.detailLabel, { color: colors.mutedForeground }]}>{row.label}</Text>
+              <Text style={[styles.detailValue, { color: colors.foreground }]}>{row.value}</Text>
+            </View>
+          ))}
+        </View>
+
+        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Methode de paiement</Text>
 
         {PAYMENT_METHODS.map((method) => (
           <TouchableOpacity
@@ -226,7 +235,7 @@ export default function PaymentScreen() {
             activeOpacity={0.8}
           >
             <View style={[styles.methodIcon, { backgroundColor: payMethod === method.id ? colors.primary + "18" : colors.muted }]}>
-              <Feather name="credit-card" size={18} color={payMethod === method.id ? colors.primary : colors.mutedForeground} />
+              <Feather name={method.icon as never} size={18} color={payMethod === method.id ? colors.primary : colors.mutedForeground} />
             </View>
             <Text style={[styles.methodLabel, { color: colors.foreground }]}>{method.label}</Text>
             <View
@@ -248,12 +257,11 @@ export default function PaymentScreen() {
           onPress={handlePay}
           activeOpacity={0.85}
         >
-          <Feather name="lock" size={16} color="#FFF" />
-          <Text style={styles.payNowText}>Payer maintenant</Text>
+          <Text style={styles.payNowText}>Confirmer le paiement</Text>
         </TouchableOpacity>
 
         <Text style={[styles.secureNote, { color: colors.mutedForeground }]}>
-          Paiement sécurisé · Chiffrement SSL
+          Transaction 100% securisee
         </Text>
       </ScrollView>
     </View>
@@ -279,6 +287,40 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   content: { padding: 20 },
+  heroCard: {
+    borderRadius: 22,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    elevation: 3,
+  },
+  heroEyebrow: {
+    fontSize: 11,
+    fontFamily: "Inter_700Bold",
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    marginBottom: 8,
+  },
+  heroAmount: { fontSize: 30, fontFamily: "Inter_700Bold", marginBottom: 4 },
+  heroSub: { fontSize: 13, fontFamily: "Inter_400Regular" },
+  detailsCard: {
+    borderRadius: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 22,
+    overflow: "hidden",
+  },
+  detailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  detailLabel: { fontSize: 13, fontFamily: "Inter_400Regular" },
+  detailValue: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
   summaryCard: {
     borderRadius: 20,
     padding: 20,
@@ -333,7 +375,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 10,
     height: 56,
     borderRadius: 16,
     marginTop: 8,

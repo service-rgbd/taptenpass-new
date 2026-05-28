@@ -1,5 +1,5 @@
 import React from "react";
-import { Image, StyleSheet, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 import { OPERATOR_COLORS } from "@/constants/packages";
 
 function safeRequire(loader: () => ReturnType<typeof require>): ReturnType<typeof require> | null {
@@ -12,7 +12,7 @@ function safeRequire(loader: () => ReturnType<typeof require>): ReturnType<typeo
 
 // To swap in real logos, replace the loader for each operator below.
 const OPERATOR_IMAGES: Record<string, ReturnType<typeof require> | null> = {
-  Orange: safeRequire(() => require("../assets/images/operators/orange.png")),
+  Orange: null,
   MTN: safeRequire(() => require("../assets/images/operators/mtn.png")),
   Moov: safeRequire(() => require("../assets/images/operators/moov.png")),
 };
@@ -38,9 +38,13 @@ export default function OperatorLogo({ operator, size = 48, radius }: OperatorLo
       {src ? (
         <Image
           source={src}
-          style={{ width: size * 0.65, height: size * 0.65, borderRadius: 4 }}
+          style={{ width: size * 0.78, height: size * 0.78, borderRadius: 4 }}
           resizeMode="contain"
         />
+      ) : operator === "Orange" ? (
+        <View style={[styles.orangeFallback, { width: size * 0.82, height: size * 0.82, borderRadius: r * 0.8 }]}>
+          <Text style={styles.orangeText}>Orange</Text>
+        </View>
       ) : (
         <View style={[styles.fallback, { backgroundColor: color, borderRadius: r }]} />
       )}
@@ -57,5 +61,17 @@ const styles = StyleSheet.create({
   fallback: {
     width: "100%",
     height: "100%",
+  },
+  orangeFallback: {
+    backgroundColor: "#111111",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 4,
+  },
+  orangeText: {
+    color: "#FF7900",
+    fontSize: 10,
+    fontFamily: "System",
+    fontWeight: "700",
   },
 });
