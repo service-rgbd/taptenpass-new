@@ -14,7 +14,7 @@ services:
       - key: JWT_EXPIRES_IN
         value: 7d
       - key: INITIAL_WALLET_BALANCE
-        value: "5000"
+        value: "0"
       - key: CORS_ORIGIN
         value: "*"
       - key: LOG_LEVEL

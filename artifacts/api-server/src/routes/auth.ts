@@ -10,6 +10,7 @@ import {
   getCurrentUser,
   loginUser,
   registerUser,
+  updateUserProfile,
 } from "../services/users.service";
 
 const router: IRouter = Router();
@@ -28,6 +29,11 @@ const loginSchema = z.object({
 
 const checkPhoneSchema = z.object({
   phone: z.string().trim().min(8, "Numéro de téléphone requis."),
+});
+
+const updateProfileSchema = z.object({
+  fullname: z.string().trim().min(2, "Nom complet requis.").optional(),
+  email: z.string().trim().optional(),
 });
 
 router.post("/check-phone", validateBody(checkPhoneSchema), async (req, res, next) => {
@@ -64,6 +70,16 @@ router.get("/me", requireAuth, async (req, res, next) => {
   try {
     const { userId } = req as AuthenticatedRequest;
     const user = await getCurrentUser(userId);
+    res.json({ user });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch("/me", requireAuth, validateBody(updateProfileSchema), async (req, res, next) => {
+  try {
+    const { userId } = req as AuthenticatedRequest;
+    const user = await updateUserProfile(userId, req.body);
     res.json({ user });
   } catch (error) {
     next(error);

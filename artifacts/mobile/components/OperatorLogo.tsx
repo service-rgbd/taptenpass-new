@@ -12,7 +12,7 @@ function safeRequire(loader: () => ReturnType<typeof require>): ReturnType<typeo
 
 // To swap in real logos, replace the loader for each operator below.
 const OPERATOR_IMAGES: Record<string, ReturnType<typeof require> | null> = {
-  Orange: null,
+  Orange: safeRequire(() => require("../assets/images/operators/orange.png")),
   MTN: safeRequire(() => require("../assets/images/operators/mtn.png")),
   Moov: safeRequire(() => require("../assets/images/operators/moov.png")),
 };

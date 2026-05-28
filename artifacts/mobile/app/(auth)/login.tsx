@@ -1,6 +1,4 @@
 import { Feather } from "@expo/vector-icons";
-import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import React, { useRef, useState } from "react";
@@ -8,7 +6,6 @@ import {
   Alert,
   ActivityIndicator,
   Animated,
-  Dimensions,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -20,11 +17,10 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
+import AuthBackground from "@/components/AuthBackground";
 import { APP_NAME, APP_TAGLINE } from "@/constants/branding";
-import { useColors } from "@/hooks/useColors";
 
-const loginBackground = require("../../assets/images/back-ground.jpg");
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+import { useColors } from "@/hooks/useColors";
 
 type Step = "phone" | "password";
 
@@ -111,18 +107,7 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.root}>
-      <Image
-        source={loginBackground}
-        style={styles.backgroundImage}
-        contentFit="cover"
-        contentPosition="center"
-      />
-      <LinearGradient
-        colors={["rgba(0,0,0,0.05)", "rgba(0,0,0,0.15)", "rgba(0,0,0,0.55)"]}
-        locations={[0, 0.45, 1]}
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
-      />
+      <AuthBackground source={require("../../assets/images/back-ground.jpg")} />
 
       <KeyboardAvoidingView
         style={styles.flex}
@@ -313,11 +298,6 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#000" },
   flex: { flex: 1 },
-  backgroundImage: {
-    ...StyleSheet.absoluteFillObject,
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
-  },
   scroll: {
     flexGrow: 1,
     justifyContent: "flex-end",

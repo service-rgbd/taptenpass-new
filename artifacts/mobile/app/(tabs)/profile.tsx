@@ -1,7 +1,7 @@
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import * as Haptics from "expo-haptics";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Alert,
   Platform,
@@ -56,7 +56,7 @@ function MenuItem({ emoji, label, desc, onPress, destructive, last }: MenuItemPr
 export default function ProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { user, logout, updateUser } = useAuth();
+  const { user, logout, updateUser, refreshUser } = useAuth();
   const { transactions } = useData();
   const [editModal, setEditModal] = useState(false);
   const [editName, setEditName] = useState(user?.fullname ?? "");
@@ -67,6 +67,12 @@ export default function ProfileScreen() {
 
   const successCount = transactions.filter((t) => t.status === "success").length;
   const totalSpent = transactions.filter((t) => t.status === "success").reduce((s, t) => s + t.amount, 0);
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshUser();
+    }, [refreshUser]),
+  );
 
   const initials = (user?.fullname ?? "??")
     .split(" ")
@@ -163,12 +169,8 @@ export default function ProfileScreen() {
           <MenuItem
             emoji="✏️"
             label="Paramètres"
-            desc="Profil, email, mot de passe"
-            onPress={() => {
-              setEditName(user.fullname);
-              setEditEmail(user.email);
-              setEditModal(true);
-            }}
+            desc="Profil, notifications, paiements"
+            onPress={() => router.push("/settings")}
           />
           <MenuItem
             emoji="🔔"

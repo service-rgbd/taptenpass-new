@@ -1,6 +1,6 @@
-import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import OperatorLogo from "@/components/OperatorLogo";
 import type { Package } from "@/types";
 import { useColors } from "@/hooks/useColors";
 
@@ -32,9 +32,7 @@ export default function PackageCard({ pkg, selected, onPress, operatorColor }: P
       activeOpacity={0.8}
     >
       <View style={styles.left}>
-        <View style={[styles.dataBadge, { backgroundColor: selected ? "rgba(255,255,255,0.2)" : operatorColor + "18" }]}>
-          <Feather name="wifi" size={16} color={selected ? "#FFF" : operatorColor} />
-        </View>
+        <OperatorLogo operator={pkg.operator} size={44} radius={12} />
         <View>
           <Text style={[styles.data, { color: selected ? "#FFF" : colors.foreground }]}>{pkg.data}</Text>
           <Text style={[styles.validity, { color: selected ? "rgba(255,255,255,0.7)" : colors.mutedForeground }]}>
@@ -43,10 +41,10 @@ export default function PackageCard({ pkg, selected, onPress, operatorColor }: P
         </View>
       </View>
       <View style={styles.right}>
-        <Text style={[styles.price, { color: selected ? "#FFF" : colors.primary }]}>{formatPrice(pkg.price)}</Text>
+        <Text style={[styles.price, { color: selected ? "#FFF" : operatorColor }]}>{formatPrice(pkg.price)}</Text>
         {selected && (
           <View style={styles.checkCircle}>
-            <Feather name="check" size={12} color={colors.primary} />
+            <Text style={[styles.checkMark, { color: colors.primary }]}>✓</Text>
           </View>
         )}
       </View>
@@ -67,13 +65,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
-  },
-  dataBadge: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
   },
   data: {
     fontSize: 16,
@@ -99,5 +90,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
     alignItems: "center",
     justifyContent: "center",
+  },
+  checkMark: {
+    fontSize: 13,
+    fontFamily: "Inter_700Bold",
+    lineHeight: 16,
   },
 });

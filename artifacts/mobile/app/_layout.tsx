@@ -31,6 +31,11 @@ function RootLayoutNav() {
         name="payment"
         options={{ presentation: "modal", headerShown: false, animation: "slide_from_bottom" }}
       />
+      <Stack.Screen name="recharge" options={{ headerShown: false }} />
+      <Stack.Screen name="loan" options={{ headerShown: false }} />
+      <Stack.Screen name="settings" options={{ headerShown: false }} />
+      <Stack.Screen name="services/index" options={{ headerShown: false }} />
+      <Stack.Screen name="services/[id]" options={{ headerShown: false }} />
     </Stack>
   );
 }

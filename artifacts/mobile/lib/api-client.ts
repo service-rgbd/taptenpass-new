@@ -111,6 +111,67 @@ export async function logoutUser(): Promise<void> {
   await clearToken();
 }
 
+export async function updateUserProfile(input: {
+  fullname?: string;
+  email?: string;
+}): Promise<User> {
+  const result = await apiFetch<{ user: User }>("/api/auth/me", {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
+  return result.user;
+}
+
+export async function initiateWalletRecharge(amountFcfa: number): Promise<{
+  reference: string;
+  amountFcfa: number;
+  feeFcfa: number;
+  totalPaidFcfa: number;
+  feeRatePercent: number;
+  authorizationUrl: string | null;
+  simulated: boolean;
+}> {
+  return apiFetch("/api/wallet/recharge/initiate", {
+    method: "POST",
+    body: JSON.stringify({ amountFcfa }),
+  });
+}
+
+export async function verifyWalletRecharge(reference: string): Promise<{
+  status: "success";
+  amountFcfa: number;
+  feeFcfa: number;
+  totalPaidFcfa: number;
+  walletBalance: number;
+  loanRepaid: boolean;
+}> {
+  return apiFetch("/api/wallet/recharge/verify", {
+    method: "POST",
+    body: JSON.stringify({ reference }),
+  });
+}
+
+export async function fetchLoanStatus(): Promise<{
+  minRechargeFcfa: number;
+  totalRechargedFcfa: number;
+  eligible: boolean;
+  activeLoanGb: number;
+  loanRepaidPending: boolean;
+  loanAmountGb: number;
+  remainingToEligible: number;
+}> {
+  return apiFetch("/api/wallet/loan");
+}
+
+export async function requestDataLoan(): Promise<{
+  loanGb: number;
+  activeLoanGb: number;
+  loanRepaidPending: boolean;
+  message: string;
+}> {
+  return apiFetch("/api/wallet/loan", { method: "POST" });
+}
+
 export async function fetchTransactions(): Promise<Transaction[]> {
   const result = await apiFetch<{ transactions: Transaction[] }>("/api/transactions");
   return result.transactions;

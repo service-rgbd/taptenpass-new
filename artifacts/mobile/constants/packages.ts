@@ -16,10 +16,31 @@ export const PACKAGES: Package[] = [
 ];
 
 export const PAYMENT_METHODS = [
-  { id: "wave", label: "Wave", icon: "radio" },
-  { id: "orange_money", label: "Orange Money", icon: "smartphone" },
-  { id: "mtn_money", label: "MTN Money", icon: "credit-card" },
-  { id: "card", label: "Carte bancaire", icon: "credit-card" },
+  {
+    id: "wallet",
+    label: "Mon solde TapTenPass",
+    icon: "briefcase" as const,
+  },
+  {
+    id: "wave",
+    label: "Wave",
+    logo: require("../assets/images/operators/icon-wave.png"),
+  },
+  {
+    id: "orange_money",
+    label: "Orange Money",
+    logo: require("../assets/images/operators/orange.png"),
+  },
+  {
+    id: "mtn_money",
+    label: "MTN Money",
+    logo: require("../assets/images/operators/mtn.png"),
+  },
+  {
+    id: "card",
+    label: "Carte bancaire",
+    icon: "credit-card" as const,
+  },
 ];
 
 export const OPERATOR_COLORS: Record<string, string> = {

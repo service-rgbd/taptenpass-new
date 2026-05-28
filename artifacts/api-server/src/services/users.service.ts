@@ -11,15 +11,20 @@ import { AppError } from "../lib/errors";
 import { signAccessToken } from "../lib/jwt";
 import { hashPassword, verifyPassword } from "../lib/password";
 import { isValidIvorianPhone, normalizePhone } from "../lib/phone";
+import { buildWalletProfile } from "./wallet.service";
 
-function toUserResponse(user: typeof usersTable.$inferSelect, balanceFcfa: number) {
+function toUserResponse(
+  user: typeof usersTable.$inferSelect,
+  account: typeof accountsTable.$inferSelect,
+) {
   return {
     id: user.id,
     fullname: user.fullname,
     phone: user.phone,
     email: user.email,
-    walletBalance: balanceFcfa,
+    walletBalance: account.balanceFcfa,
     createdAt: user.createdAt.toISOString(),
+    ...buildWalletProfile(account),
   };
 }
 
@@ -71,7 +76,7 @@ export async function registerUser(input: {
 
   return {
     token,
-    user: toUserResponse(user, account.balanceFcfa),
+    user: toUserResponse(user, account),
   };
 }
 
@@ -103,8 +108,51 @@ export async function loginUser(input: { phone: string; password: string }) {
 
   return {
     token,
-    user: toUserResponse(user, account.balanceFcfa),
+    user: toUserResponse(user, account),
   };
+}
+
+export async function updateUserProfile(
+  userId: string,
+  input: { fullname?: string; email?: string },
+) {
+  const user = await db.query.usersTable.findFirst({
+    where: eq(usersTable.id, userId),
+  });
+
+  if (!user || !user.isActive) {
+    throw new AppError(404, "Utilisateur introuvable.");
+  }
+
+  const updates: Partial<typeof usersTable.$inferInsert> = {};
+
+  if (input.fullname !== undefined) {
+    const fullname = input.fullname.trim();
+    if (fullname.length < 2) {
+      throw new AppError(400, "Nom complet invalide.");
+    }
+    updates.fullname = fullname;
+  }
+
+  if (input.email !== undefined) {
+    updates.email = input.email.trim();
+  }
+
+  const [updatedUser] = await db
+    .update(usersTable)
+    .set(updates)
+    .where(eq(usersTable.id, userId))
+    .returning();
+
+  const account = await db.query.accountsTable.findFirst({
+    where: eq(accountsTable.userId, userId),
+  });
+
+  if (!account) {
+    throw new AppError(500, "Compte portefeuille introuvable.");
+  }
+
+  return toUserResponse(updatedUser, account);
 }
 
 export async function getCurrentUser(userId: string) {
@@ -124,7 +172,7 @@ export async function getCurrentUser(userId: string) {
     throw new AppError(500, "Compte portefeuille introuvable.");
   }
 
-  return toUserResponse(user, account.balanceFcfa);
+  return toUserResponse(user, account);
 }
 
 export async function getWallet(userId: string) {
@@ -148,6 +196,7 @@ function buildReference(): string {
 }
 
 const ALLOWED_PAYMENT_METHODS = new Set([
+  "wallet",
   "wave",
   "orange_money",
   "mtn_money",
@@ -183,8 +232,10 @@ export async function createTransaction(
   }
 
   const reference = buildReference();
-  const success =
-    Math.random() < env.paymentSimulatedSuccessRate;
+  const isWalletPayment = input.paymentMethod === "wallet";
+  const success = isWalletPayment
+    ? true
+    : Math.random() < env.paymentSimulatedSuccessRate;
 
   return db.transaction(async (tx) => {
     const account = await tx.query.accountsTable.findFirst({

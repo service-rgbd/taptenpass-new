@@ -17,6 +17,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import OperatorCard from "@/components/OperatorCard";
+import OperatorLogo from "@/components/OperatorLogo";
 import PackageCard from "@/components/PackageCard";
 import { OPERATOR_COLORS, PACKAGES } from "@/constants/packages";
 import {
@@ -95,11 +96,31 @@ export default function BuyScreen() {
   }
 
   function handlePay() {
-    if (!selectedPkg || !operator) return;
+    if (!selectedPkg || !operator || !user) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    if (user.walletBalance >= selectedPkg.price) {
+      router.push({
+        pathname: "/payment",
+        params: {
+          operator,
+          phone: normalizePhone(phone),
+          packageId: selectedPkg.id,
+          packageName: selectedPkg.name,
+          data: selectedPkg.data,
+          amount: selectedPkg.price.toString(),
+          validity: selectedPkg.validity,
+          paymentSource: "wallet",
+        },
+      });
+      return;
+    }
+
     router.push({
-      pathname: "/payment",
+      pathname: "/recharge",
       params: {
+        neededAmount: String(selectedPkg.price - user.walletBalance),
+        returnTo: "buy",
         operator,
         phone: normalizePhone(phone),
         packageId: selectedPkg.id,
@@ -243,7 +264,11 @@ export default function BuyScreen() {
           <View style={styles.summaryRow}>
             <View style={styles.summaryItem}>
               <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>Operateur</Text>
-              <Text style={[styles.summaryValue, { color: colors.foreground }]}>{operator || "A choisir"}</Text>
+              {operator ? (
+                <OperatorLogo operator={operator} size={34} radius={10} />
+              ) : (
+                <Text style={[styles.summaryValue, { color: colors.foreground }]}>A choisir</Text>
+              )}
             </View>
             <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
             <View style={styles.summaryItem}>
@@ -296,7 +321,7 @@ export default function BuyScreen() {
             </Text>
 
             <View style={[styles.operatorBadge, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <View style={[styles.opDot, { backgroundColor: opColor }]} />
+              <OperatorLogo operator={operator} size={32} radius={10} />
               <Text style={[styles.opBadgeText, { color: opColor }]}>{operator}</Text>
               <Text style={[styles.prefixHint, { color: colors.mutedForeground }]}>
                 {phoneHint(operator)}
@@ -386,8 +411,11 @@ export default function BuyScreen() {
             {selectedPkg && (
               <View style={[styles.selectionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
                 <View style={styles.selectionTop}>
-                  <Text style={[styles.selectionTitle, { color: colors.foreground }]}>Selection actuelle</Text>
-                  <Text style={[styles.selectionBadge, { color: colors.primary }]}>Forfait #{selectedIndex + 1}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.selectionTitle, { color: colors.foreground }]}>Selection actuelle</Text>
+                    <Text style={[styles.selectionBadge, { color: colors.primary }]}>Forfait #{selectedIndex + 1}</Text>
+                  </View>
+                  <OperatorLogo operator={operator} size={44} radius={12} />
                 </View>
                 <Text style={[styles.selectionData, { color: colors.foreground }]}>{selectedPkg.data}</Text>
                 <Text style={[styles.selectionMeta, { color: colors.mutedForeground }]}>

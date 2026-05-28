@@ -24,8 +24,10 @@ export const env = {
   jwtSecret: required("JWT_SECRET"),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? "7d",
   corsOrigin: process.env.CORS_ORIGIN ?? "*",
-  initialWalletBalance: Number(process.env.INITIAL_WALLET_BALANCE ?? "5000"),
+  initialWalletBalance: Number(process.env.INITIAL_WALLET_BALANCE ?? "0"),
   paymentSimulatedSuccessRate: Number(
     process.env.PAYMENT_SIMULATED_SUCCESS_RATE ?? "0.9",
   ),
+  paystackSecretKey: process.env.PAYSTACK_SECRET_KEY ?? "",
+  paystackPublicKey: process.env.PAYSTACK_PUBLIC_KEY ?? "",
 };

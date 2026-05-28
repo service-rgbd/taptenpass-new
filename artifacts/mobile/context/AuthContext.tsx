@@ -6,8 +6,10 @@ import {
   loginUser,
   logoutUser,
   registerUser,
+  updateUserProfile,
 } from "@/lib/api-client";
 import type { User } from "@/types";
+import { normalizeUser } from "@/lib/normalize-user";
 
 interface AuthContextType {
   user: User | null;
@@ -33,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function loadUser() {
     try {
       const current = await fetchCurrentUser();
-      setUser(current);
+      setUser(normalizeUser(current));
     } catch (error) {
       if (!(error instanceof ApiError) || error.status !== 401) {
         console.warn("Failed to load user", error);
@@ -47,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function refreshUser() {
     try {
       const current = await fetchCurrentUser();
-      setUser(current);
+      setUser(normalizeUser(current));
     } catch {
       setUser(null);
     }
@@ -64,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function login(phone: string, password: string): Promise<boolean> {
     try {
       const result = await loginUser({ phone, password });
-      setUser(result.user);
+      setUser(normalizeUser(result.user));
       return true;
     } catch {
       return false;
@@ -78,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   ): Promise<boolean> {
     try {
       const result = await registerUser({ fullname, phone, password });
-      setUser(result.user);
+      setUser(normalizeUser(result.user));
       return true;
     } catch {
       return false;
@@ -92,6 +94,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function updateUser(updates: Partial<User>): Promise<void> {
     if (!user) return;
+
+    if (updates.fullname !== undefined || updates.email !== undefined) {
+      try {
+        const updated = await updateUserProfile({
+          fullname: updates.fullname,
+          email: updates.email,
+        });
+        setUser(normalizeUser(updated));
+        return;
+      } catch (error) {
+        console.warn("Failed to update profile", error);
+      }
+    }
+
     setUser({ ...user, ...updates });
   }
 

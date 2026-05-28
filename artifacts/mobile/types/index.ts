@@ -4,6 +4,12 @@ export interface User {
   phone: string;
   email: string;
   walletBalance: number;
+  totalRechargedFcfa: number;
+  activeLoanGb: number;
+  loanRepaidPending: boolean;
+  loanEligible: boolean;
+  loanMinRechargeFcfa: number;
+  rechargeFeeRatePercent: number;
   createdAt: string;
 }
 

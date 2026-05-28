@@ -1,13 +1,11 @@
 import { Feather } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import * as Haptics from "expo-haptics";
 import React, { useState } from "react";
 import {
   Alert,
   ActivityIndicator,
-  Dimensions,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -18,6 +16,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AuthBackground from "@/components/AuthBackground";
 import { APP_NAME, APP_TAGLINE } from "@/constants/branding";
 import { formatPhoneInput, normalizePhone } from "@/constants/phone";
 import { ApiError } from "@/lib/api-client";
@@ -26,10 +25,8 @@ import { useColors } from "@/hooks/useColors";
 
 type Method = "google" | "apple" | "phone" | null;
 
-const PHONE_STEPS = ["Prénom", "Nom", "Téléphone", "Mot de passe"];
-const registerBackground = require("../../assets/images/back-ground.jpg");
+const PHONE_STEPS = ["Nom complet", "Téléphone", "Mot de passe"];
 const appLogo = require("../../assets/images/icon.png");
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 export default function RegisterScreen() {
   const colors = useColors();
@@ -40,8 +37,7 @@ export default function RegisterScreen() {
   const comingFromCheck = !!prefillPhone;
   const [method, setMethod] = useState<Method>(comingFromCheck ? "phone" : null);
   const [step, setStep] = useState(1);
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [fullname, setFullname] = useState("");
   const [phone, setPhone] = useState(prefillPhone ? formatPhoneInput(prefillPhone) : "");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
@@ -66,16 +62,15 @@ export default function RegisterScreen() {
   }
 
   function canContinue(): boolean {
-    if (step === 1) return firstName.trim().length >= 2;
-    if (step === 2) return lastName.trim().length >= 2;
-    if (step === 3) return normalizePhone(phone).length === 10;
-    if (step === 4) return password.length >= 6;
+    if (step === 1) return fullname.trim().length >= 3;
+    if (step === 2) return normalizePhone(phone).length === 10;
+    if (step === 3) return password.length >= 6;
     return false;
   }
 
   function goNext() {
     if (!canContinue()) return;
-    if (step < 4) {
+    if (step < 3) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       setStep(step + 1);
       return;
@@ -86,8 +81,7 @@ export default function RegisterScreen() {
   async function handleRegister() {
     setLoading(true);
     try {
-      const fullname = `${firstName.trim()} ${lastName.trim()}`;
-      const ok = await register(fullname, normalizePhone(phone), password);
+      const ok = await register(fullname.trim(), normalizePhone(phone), password);
       if (ok) {
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         router.replace("/(tabs)");
@@ -106,14 +100,12 @@ export default function RegisterScreen() {
   }
 
   const stepTitles = [
-    "Quel est votre prénom ?",
-    "Quel est votre nom ?",
+    "Quel est votre nom complet ?",
     "Votre numéro de téléphone",
     "Créez votre mot de passe",
   ];
   const stepDescs = [
-    "Identifiez-vous pour personnaliser votre expérience.",
-    "Votre nom de famille pour votre profil.",
+    "Prénom et nom sur un seul champ, ex. Jean Kouamé.",
     comingFromCheck
       ? `Numéro ${phone} confirmé pour votre compte.`
       : "Numéro ivoirien à 10 chiffres (07, 05 ou 01).",
@@ -122,18 +114,7 @@ export default function RegisterScreen() {
 
   return (
     <View style={styles.root}>
-      <Image
-        source={registerBackground}
-        style={styles.backgroundImage}
-        contentFit="cover"
-        contentPosition="center"
-      />
-      <LinearGradient
-        colors={["rgba(0,0,0,0.05)", "rgba(0,0,0,0.16)", "rgba(0,0,0,0.62)"]}
-        locations={[0, 0.42, 1]}
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
-      />
+      <AuthBackground source={require("../../assets/images/back-ground.jpg")} />
 
       <KeyboardAvoidingView
         style={styles.flex}
@@ -241,10 +222,10 @@ export default function RegisterScreen() {
                   <Feather name="user" size={18} color={colors.primary} />
                   <TextInput
                     style={[styles.input, { color: colors.foreground }]}
-                    placeholder="Ex. Jean"
+                    placeholder="Ex. Jean Kouamé"
                     placeholderTextColor={colors.mutedForeground}
-                    value={firstName}
-                    onChangeText={setFirstName}
+                    value={fullname}
+                    onChangeText={setFullname}
                     autoCapitalize="words"
                     autoFocus
                   />
@@ -252,21 +233,6 @@ export default function RegisterScreen() {
               )}
 
               {step === 2 && (
-                <View style={[styles.inputWrap, { backgroundColor: colors.card }]}>
-                  <Feather name="users" size={18} color={colors.primary} />
-                  <TextInput
-                    style={[styles.input, { color: colors.foreground }]}
-                    placeholder="Ex. Kouamé"
-                    placeholderTextColor={colors.mutedForeground}
-                    value={lastName}
-                    onChangeText={setLastName}
-                    autoCapitalize="words"
-                    autoFocus
-                  />
-                </View>
-              )}
-
-              {step === 3 && (
                 <View style={[styles.inputWrap, { backgroundColor: colors.card, opacity: comingFromCheck ? 0.88 : 1 }]}>
                   <Feather name="phone" size={18} color={colors.primary} />
                   <TextInput
@@ -284,7 +250,7 @@ export default function RegisterScreen() {
                 </View>
               )}
 
-              {step === 4 && (
+              {step === 3 && (
                 <View style={[styles.inputWrap, { backgroundColor: colors.card }]}>
                   <Feather name="lock" size={18} color={colors.primary} />
                   <TextInput
@@ -315,8 +281,8 @@ export default function RegisterScreen() {
                   <ActivityIndicator color="#FFF" />
                 ) : (
                   <>
-                    <Text style={styles.primaryBtnText}>{step === 4 ? "Créer mon compte" : "Continuer"}</Text>
-                    {step < 4 && <Feather name="arrow-right" size={18} color="#FFF" />}
+                    <Text style={styles.primaryBtnText}>{step === 3 ? "Créer mon compte" : "Continuer"}</Text>
+                    {step < 3 && <Feather name="arrow-right" size={18} color="#FFF" />}
                   </>
                 )}
               </TouchableOpacity>
@@ -338,11 +304,6 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#000" },
   flex: { flex: 1 },
-  backgroundImage: {
-    ...StyleSheet.absoluteFillObject,
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
-  },
   scroll: {
     flexGrow: 1,
     justifyContent: "flex-end",

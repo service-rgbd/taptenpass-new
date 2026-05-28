@@ -1,10 +1,9 @@
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import * as Haptics from "expo-haptics";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Alert,
-  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -14,6 +13,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OPERATOR_COLORS } from "@/constants/packages";
+import { HOME_SERVICES } from "@/constants/services";
+import ServiceTile from "@/components/ServiceTile";
+import SideDrawer from "@/components/SideDrawer";
 import { useAuth } from "@/context/AuthContext";
 import { useData } from "@/context/DataContext";
 import { useColors } from "@/hooks/useColors";
@@ -29,7 +31,7 @@ function formatDate(iso: string) {
 export default function HomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const { transactions } = useData();
   const [balanceHidden, setBalanceHidden] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -47,55 +49,41 @@ export default function HomeScreen() {
     .slice(0, 2);
   const recent = transactions.slice(0, 4);
 
-  const services = [
-    {
-      id: "transfer",
-      label: "Transfert",
-      icon: "arrow-up-right" as const,
-      onPress: () => Alert.alert("Bientôt", "Transfert d'argent bientôt disponible."),
-    },
-    {
-      id: "offers",
-      label: "Offres",
-      icon: "wifi" as const,
-      onPress: () => router.push("/(tabs)/buy"),
-    },
-    {
-      id: "payment",
-      label: "Paiement",
-      icon: "calendar" as const,
-      onPress: () => Alert.alert("Bientôt", "Les paiements programmés arrivent bientôt."),
-    },
-    {
-      id: "loan",
-      label: "Prêt",
-      icon: "percent" as const,
-      onPress: () => Alert.alert("Bientôt", "Le module prêt arrive bientôt."),
-    },
-    {
-      id: "services",
-      label: "Services",
-      icon: "smartphone" as const,
-      onPress: () => Alert.alert("Services", "Plus de services seront ajoutés bientôt."),
-    },
-    {
-      id: "subscriptions",
-      label: "Abonnements",
-      icon: "bookmark" as const,
-      onPress: () => Alert.alert("Bientôt", "Les abonnements arrivent bientôt."),
-    },
-  ];
+  useFocusEffect(
+    useCallback(() => {
+      refreshUser();
+    }, [refreshUser]),
+  );
+
+  function handleServicePress(key: (typeof HOME_SERVICES)[number]["onPressKey"]) {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    switch (key) {
+      case "offers":
+        router.push("/(tabs)/buy");
+        break;
+      case "transfer":
+        Alert.alert("Bientôt", "Transfert d'argent bientôt disponible.");
+        break;
+      case "payment":
+        Alert.alert("Bientôt", "Les paiements programmés arrivent bientôt.");
+        break;
+      case "loan":
+        router.push("/loan");
+        break;
+      case "hub":
+        router.push("/services");
+        break;
+      case "subscriptions":
+        router.push("/services");
+        break;
+    }
+  }
 
   const statusColors = {
     success: colors.success,
     pending: colors.secondary,
     failed: colors.destructive,
   };
-
-  function quickHandle(action: (typeof services)[number]) {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    action.onPress();
-  }
 
   async function handleLogout() {
     setMenuOpen(false);
@@ -161,7 +149,7 @@ export default function HomeScreen() {
         <View style={styles.walletFooter}>
           <TouchableOpacity
             style={[styles.walletAction, { borderColor: colors.primary20 }]}
-            onPress={() => Alert.alert("Recharge", "Recharge de solde bientôt disponible.")}
+            onPress={() => router.push("/recharge")}
             activeOpacity={0.7}
           >
             <Feather name="plus" size={15} color={colors.primary} />
@@ -176,29 +164,12 @@ export default function HomeScreen() {
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Services</Text>
         <View style={styles.servicesGrid}>
-          {services.map((s) => (
-            <TouchableOpacity
-              key={s.id}
-              style={styles.serviceCell}
-              onPress={() => quickHandle(s)}
-              activeOpacity={0.75}
-            >
-              <View
-                style={[
-                  styles.serviceIcon,
-                  {
-                    backgroundColor: colors.muted,
-                    borderColor: colors.border,
-                    shadowColor: colors.shadow,
-                  },
-                ]}
-              >
-                <Feather name={s.icon} size={20} color={colors.primary} />
-              </View>
-              <Text style={[styles.serviceLabel, { color: colors.foreground }]} numberOfLines={1}>
-                {s.label}
-              </Text>
-            </TouchableOpacity>
+          {HOME_SERVICES.map((service) => (
+            <ServiceTile
+              key={service.id}
+              service={service}
+              onPress={() => handleServicePress(service.onPressKey)}
+            />
           ))}
         </View>
       </View>
@@ -290,53 +261,14 @@ export default function HomeScreen() {
         )}
       </View>
       </ScrollView>
-      <Modal visible={menuOpen} transparent animationType="fade" onRequestClose={() => setMenuOpen(false)}>
-        <View style={styles.drawerOverlay}>
-          <TouchableOpacity style={styles.drawerBackdrop} activeOpacity={1} onPress={() => setMenuOpen(false)} />
-          <View style={[styles.drawerPanel, { backgroundColor: colors.card, shadowColor: colors.shadow }]}>
-            <View style={styles.drawerHeader}>
-              <View style={[styles.drawerAvatar, { backgroundColor: colors.muted }]}>
-                <Text style={[styles.drawerAvatarText, { color: colors.foreground }]}>{initials}</Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.drawerName, { color: colors.foreground }]}>{user.fullname}</Text>
-                <Text style={[styles.drawerPhone, { color: colors.mutedForeground }]}>{user.phone}</Text>
-              </View>
-              <TouchableOpacity onPress={() => setMenuOpen(false)} activeOpacity={0.7}>
-                <Feather name="x" size={20} color={colors.foreground} />
-              </TouchableOpacity>
-            </View>
 
-            <View style={styles.drawerItems}>
-              {[
-                { icon: "home", label: "Accueil", onPress: () => setMenuOpen(false) },
-                { icon: "shopping-bag", label: "Acheter un forfait", onPress: () => { setMenuOpen(false); router.push("/(tabs)/buy"); } },
-                { icon: "clock", label: "Historique", onPress: () => { setMenuOpen(false); router.push("/(tabs)/history"); } },
-                { icon: "settings", label: "Parametres", onPress: () => { setMenuOpen(false); router.push("/settings"); } },
-                { icon: "help-circle", label: "Aide", onPress: () => { setMenuOpen(false); router.push("/(tabs)/profile"); } },
-              ].map((item) => (
-                <TouchableOpacity
-                  key={item.label}
-                  style={[styles.drawerItem, { borderColor: colors.border }]}
-                  onPress={item.onPress}
-                  activeOpacity={0.75}
-                >
-                  <View style={[styles.drawerItemIcon, { backgroundColor: colors.muted }]}>
-                    <Feather name={item.icon as never} size={18} color={colors.primary} />
-                  </View>
-                  <Text style={[styles.drawerItemLabel, { color: colors.foreground }]}>{item.label}</Text>
-                  <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <TouchableOpacity style={[styles.drawerLogout, { backgroundColor: colors.background }]} onPress={handleLogout} activeOpacity={0.75}>
-              <Feather name="log-out" size={16} color={colors.foreground} />
-              <Text style={[styles.drawerLogoutText, { color: colors.foreground }]}>Se deconnecter</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      <SideDrawer
+        visible={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        user={user}
+        initials={initials}
+        onLogout={handleLogout}
+      />
     </View>
   );
 }
@@ -413,29 +345,6 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     rowGap: 18,
   },
-  serviceCell: {
-    width: "25%",
-    alignItems: "center",
-    gap: 8,
-  },
-  serviceIcon: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: StyleSheet.hairlineWidth,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  serviceLabel: {
-    fontSize: 11,
-    fontFamily: "Inter_500Medium",
-    textAlign: "center",
-    maxWidth: 74,
-  },
   promoCard: {
     marginHorizontal: 20,
     borderRadius: 18,
@@ -497,65 +406,4 @@ const styles = StyleSheet.create({
   txRight: { alignItems: "flex-end", gap: 3 },
   txAmount: { fontSize: 13, fontFamily: "Inter_700Bold" },
   txStatus: { fontSize: 11, fontFamily: "Inter_500Medium" },
-  drawerOverlay: {
-    flex: 1,
-    flexDirection: "row",
-  },
-  drawerBackdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.24)",
-  },
-  drawerPanel: {
-    width: "78%",
-    paddingTop: 56,
-    paddingHorizontal: 18,
-    paddingBottom: 24,
-    shadowOffset: { width: -4, height: 0 },
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  drawerHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginBottom: 22,
-  },
-  drawerAvatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  drawerAvatarText: { fontSize: 16, fontFamily: "Inter_700Bold" },
-  drawerName: { fontSize: 16, fontFamily: "Inter_700Bold" },
-  drawerPhone: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
-  drawerItems: { gap: 10 },
-  drawerItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 16,
-    padding: 14,
-  },
-  drawerItemIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  drawerItemLabel: { flex: 1, fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  drawerLogout: {
-    marginTop: 22,
-    borderRadius: 14,
-    height: 48,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
-  drawerLogoutText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
 });

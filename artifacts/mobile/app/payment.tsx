@@ -1,4 +1,5 @@
 import { Feather } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import * as Haptics from "expo-haptics";
 import React, { useState } from "react";
@@ -13,6 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PAYMENT_METHODS } from "@/constants/packages";
+import OperatorLogo from "@/components/OperatorLogo";
 import { useAuth } from "@/context/AuthContext";
 import { useData } from "@/context/DataContext";
 import { ApiError } from "@/lib/api-client";
@@ -23,7 +25,7 @@ type Stage = "choose" | "processing" | "success" | "failed";
 export default function PaymentScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { operator, phone, data, packageName, amount, validity, packageId } = useLocalSearchParams<{
+  const { operator, phone, data, packageName, amount, validity, packageId, paymentSource } = useLocalSearchParams<{
     operator: string;
     phone: string;
     data: string;
@@ -31,19 +33,41 @@ export default function PaymentScreen() {
     amount: string;
     validity: string;
     packageId: string;
+    paymentSource?: string;
   }>();
-  const { updateUser } = useAuth();
+  const { user, updateUser, refreshUser } = useAuth();
   const { addTransaction } = useData();
 
-  const [payMethod, setPayMethod] = useState<string>("wave");
+  const [payMethod, setPayMethod] = useState<string>(
+    paymentSource === "wallet" ? "wallet" : "wave",
+  );
   const [stage, setStage] = useState<Stage>("choose");
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom + 16;
   const amountNum = parseInt(amount ?? "0", 10);
+  const canPayWithWallet = (user?.walletBalance ?? 0) >= amountNum;
 
   async function handlePay() {
     if (!packageId || !phone) return;
+
+    if (payMethod === "wallet" && !canPayWithWallet) {
+      router.replace({
+        pathname: "/recharge",
+        params: {
+          neededAmount: String(amountNum - (user?.walletBalance ?? 0)),
+          returnTo: "buy",
+          operator,
+          phone,
+          packageId,
+          packageName,
+          data,
+          amount,
+          validity,
+        },
+      });
+      return;
+    }
 
     setStage("processing");
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -56,6 +80,7 @@ export default function PaymentScreen() {
       });
 
       await updateUser({ walletBalance: result.walletBalance });
+      await refreshUser();
 
       if (result.transaction.status === "success") {
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -67,10 +92,23 @@ export default function PaymentScreen() {
     } catch (error) {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       if (error instanceof ApiError && error.status === 402) {
-        setStage("failed");
-      } else {
-        setStage("failed");
+        router.replace({
+          pathname: "/recharge",
+          params: {
+            neededAmount: String(amountNum - (user?.walletBalance ?? 0)),
+            returnTo: "buy",
+            operator,
+            phone,
+            packageId,
+            packageName,
+            data,
+            amount,
+            validity,
+          },
+        });
+        return;
       }
+      setStage("failed");
     }
   }
 
@@ -182,11 +220,18 @@ export default function PaymentScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={[styles.heroCard, { backgroundColor: colors.card, borderColor: colors.border, shadowColor: colors.shadow }]}>
-          <Text style={[styles.heroEyebrow, { color: colors.primary }]}>Confirmation</Text>
-          <Text style={[styles.heroAmount, { color: colors.foreground }]}>{amountNum.toLocaleString("fr-CI")} FCFA</Text>
-          <Text style={[styles.heroSub, { color: colors.mutedForeground }]}>
-            {data} · {validity} · {operator}
-          </Text>
+          <View style={styles.heroCardRow}>
+            <View style={styles.heroCardContent}>
+              <Text style={[styles.heroEyebrow, { color: colors.primary }]}>Confirmation</Text>
+              <Text style={[styles.heroAmount, { color: colors.foreground }]}>{amountNum.toLocaleString("fr-CI")} FCFA</Text>
+              <Text style={[styles.heroSub, { color: colors.mutedForeground }]}>
+                {data} · {validity} · {operator}
+              </Text>
+            </View>
+            {operator ? (
+              <OperatorLogo operator={operator} size={58} radius={16} />
+            ) : null}
+          </View>
         </View>
 
         <View style={[styles.detailsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -195,7 +240,7 @@ export default function PaymentScreen() {
             { label: "Forfait", value: `${data}` },
             { label: "Validite", value: validity ?? "" },
             { label: "Visa envoye", value: `${amountNum.toLocaleString("fr-CI")} FCFA` },
-            { label: "Frais", value: "0 FCFA" },
+            { label: "Frais", value: payMethod === "wallet" ? "0 FCFA" : "0 FCFA" },
             { label: "Total", value: `${amountNum.toLocaleString("fr-CI")} FCFA` },
           ].map((row, index, rows) => (
             <View
@@ -213,7 +258,7 @@ export default function PaymentScreen() {
 
         <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Methode de paiement</Text>
 
-        {PAYMENT_METHODS.map((method) => (
+        {PAYMENT_METHODS.filter((method) => method.id !== "wallet" || canPayWithWallet).map((method) => (
           <TouchableOpacity
             key={method.id}
             style={[
@@ -231,7 +276,15 @@ export default function PaymentScreen() {
             activeOpacity={0.8}
           >
             <View style={[styles.methodIcon, { backgroundColor: payMethod === method.id ? colors.primary + "18" : colors.muted }]}>
-              <Feather name={method.icon as never} size={18} color={payMethod === method.id ? colors.primary : colors.mutedForeground} />
+              {"logo" in method && method.logo ? (
+                <Image source={method.logo} style={styles.methodLogo} contentFit="contain" />
+              ) : (
+                <Feather
+                  name={method.icon ?? "credit-card"}
+                  size={18}
+                  color={payMethod === method.id ? colors.primary : colors.mutedForeground}
+                />
+              )}
             </View>
             <Text style={[styles.methodLabel, { color: colors.foreground }]}>{method.label}</Text>
             <View
@@ -248,12 +301,42 @@ export default function PaymentScreen() {
           </TouchableOpacity>
         ))}
 
+        {!canPayWithWallet ? (
+          <TouchableOpacity
+            style={[styles.rechargeLink, { backgroundColor: colors.primary20 }]}
+            onPress={() =>
+              router.push({
+                pathname: "/recharge",
+                params: {
+                  neededAmount: String(amountNum - (user?.walletBalance ?? 0)),
+                  returnTo: "buy",
+                  operator,
+                  phone,
+                  packageId,
+                  packageName,
+                  data,
+                  amount,
+                  validity,
+                },
+              })
+            }
+            activeOpacity={0.8}
+          >
+            <Feather name="plus-circle" size={16} color={colors.primary} />
+            <Text style={[styles.rechargeLinkText, { color: colors.primary }]}>
+              Solde insuffisant — Recharger via Paystack
+            </Text>
+          </TouchableOpacity>
+        ) : null}
+
         <TouchableOpacity
           style={[styles.payNowBtn, { backgroundColor: colors.primary }]}
           onPress={handlePay}
           activeOpacity={0.85}
         >
-          <Text style={styles.payNowText}>Confirmer le paiement</Text>
+          <Text style={styles.payNowText}>
+            {payMethod === "wallet" ? "Payer depuis mon solde" : "Confirmer le paiement"}
+          </Text>
         </TouchableOpacity>
 
         <Text style={[styles.secureNote, { color: colors.mutedForeground }]}>
@@ -292,6 +375,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 16,
     elevation: 3,
+  },
+  heroCardRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  heroCardContent: {
+    flex: 1,
   },
   heroEyebrow: {
     fontSize: 11,
@@ -358,6 +450,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  methodLogo: {
+    width: 28,
+    height: 28,
+  },
   methodLabel: { flex: 1, fontSize: 14, fontFamily: "Inter_600SemiBold" },
   radio: {
     width: 22,
@@ -382,6 +478,16 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   payNowText: { color: "#FFF", fontSize: 16, fontFamily: "Inter_700Bold" },
+  rechargeLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 12,
+  },
+  rechargeLinkText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
   secureNote: { textAlign: "center", fontSize: 12, fontFamily: "Inter_400Regular" },
   processingCard: {
     width: "100%",
